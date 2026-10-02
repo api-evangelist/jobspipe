@@ -1,0 +1,29 @@
+aid: jobspipe
+name: JobsPipe
+description: 'JobsPipe is a company surfaced via the API Evangelist harvest backlog (source: new-submission)
+  and added to the network as a stub for full-pipeline profiling.'
+url: https://raw.githubusercontent.com/api-evangelist/jobspipe/refs/heads/main/apis.yml
+x-type: company
+x-source: harvest:new-submission
+x-tier: stub
+x-tier-reason: harvest
+specificationVersion: '0.20'
+created: '2026-10-02'
+modified: '2026-10-02'
+tags:
+- Company
+apis: []
+maintainers:
+- FN: Kin Lane
+  email: kin@apievangelist.com
+- FN: APIs.json
+  email: info@apis.io
+common:
+- type: Website
+  url: https://jobspipe.dev
+- type: Documentation
+  url: https://docs.jobspipe.dev
+x-submission-notes: Job-postings data API aggregating postings across the web for AI agents.
+x-submission-probe: root 200; docs 200; jobspipe.dev/openapi.json OpenAPI 3.1.0 29 paths server api.jobspipe.dev;
+  llms.txt 200 (both hosts); api host 404 JSON; 404 probe 404
+x-submitted-by: dvir@jobspipe.dev (apis.io/add, 2026-09-29)
