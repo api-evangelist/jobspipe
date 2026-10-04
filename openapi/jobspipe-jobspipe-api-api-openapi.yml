@@ -1,0 +1,178 @@
+openapi: 3.2.0
+info:
+  title: JobsPipe API
+  version: 1.0.0
+  description: JobsPipe is a unified data API over public job and technographic sources.
+  contact:
+    name: JobsPipe
+    url: https://jobspipe.dev
+    email: support@jobspipe.dev
+servers:
+- url: https://api.jobspipe.dev
+security:
+- apiKey: []
+tags:
+- name: JobsPipe API
+paths: {}
+webhooks:
+  job.closed:
+    post:
+      summary: A job posting closed (open to closed)
+      description: 'JobsPipe POSTs this event to a webhook endpoint when a job in one of your active monitors (POST /v1/monitors) that delivers to it closes, and the endpoint lists job.closed in its enabledEvents. Only verified closes (closed_reason gone or closed) are sent. The body is { event, id, timestamp, data }: id is the job id search returned (not an event id), and data is a compact record, not the Job schema. job_id, internal_id, monitor_ids and closed_reason are always present; the other fields come from a lookup and may be missing. A retry resends the first attempt''s body byte for byte. Verify authenticity with the X-JobsPipe-Signature header: a hex-encoded HMAC-SHA256 of `{X-JobsPipe-Timestamp}.{raw request body}` computed with your webhook signing secret; compare it in constant time and reject on mismatch. Every attempt is signed with a fresh X-JobsPipe-Timestamp (Unix seconds); reject deliveries older than five minutes. Signing secrets are issued and rotated on the dashboard''s Webhooks page (paid plans).'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - event
+              - id
+              - timestamp
+              - data
+              properties:
+                event:
+                  type: string
+                  enum:
+                  - job.closed
+                id:
+                  type: string
+                  description: The closed job's id, as search returned it. Same on every retry.
+                timestamp:
+                  type: integer
+                  description: Unix seconds when this delivery attempt was built.
+                data:
+                  type: object
+                  required:
+                  - id
+                  - job_id
+                  - internal_id
+                  - monitor_ids
+                  - closed_reason
+                  properties:
+                    id:
+                      type: string
+                      description: Same as job_id.
+                    job_id:
+                      type: string
+                      description: The id search returns for this job, as held in the monitor.
+                    internal_id:
+                      type: string
+                      description: JobsPipe's internal id for the job.
+                    native_id:
+                      type:
+                      - string
+                      - 'null'
+                      description: The source's own id for the posting.
+                    monitor_ids:
+                      type: array
+                      items:
+                        type: string
+                      description: Your monitors, delivering to this endpoint, that include the job.
+                    title:
+                      type: string
+                    company:
+                      type: string
+                    company_domain:
+                      type: string
+                    job_url:
+                      type: string
+                    country_code:
+                      type: string
+                    seniority:
+                      type: string
+                    posted_at:
+                      type: string
+                    source_provider:
+                      type:
+                      - string
+                      - 'null'
+                    occupation_code:
+                      type: string
+                    isic_division:
+                      type: string
+                    skills:
+                      type: array
+                      items:
+                        type: string
+                    closed_reason:
+                      type: string
+                      enum:
+                      - gone
+                      - closed
+                      description: 'gone: the posting page is gone; closed: the source marks it closed.'
+                    closed_at:
+                      type:
+                      - string
+                      - 'null'
+                      description: When JobsPipe recorded the close.
+      responses:
+        '200':
+          description: Acknowledged. Respond 2xx within 5 seconds. Anything else, a timeout or a redirect is a failed attempt; JobsPipe makes up to 6 attempts, retrying after 1 minute, 5 minutes, 30 minutes, 2 hours and 6 hours.
+      tags:
+      - JobsPipe API
+  alert.matched:
+    post:
+      summary: A Signal found new matches
+      description: 'Sent by a Signal with a webhook destination: once per check for instant destinations, once a day for daily digests. The body is { event, alert_id, mode, truncated, timestamp, data }, with at most 100 items in data. Signed the same way as job.closed, with the destination''s own whsec_ secret, which is shown once when the Signal is created and never again. A destination that fails all 6 attempts is disabled.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - event
+              - alert_id
+              - mode
+              - truncated
+              - timestamp
+              - data
+              properties:
+                event:
+                  type: string
+                  enum:
+                  - alert.matched
+                alert_id:
+                  type: string
+                  description: The Signal's id.
+                mode:
+                  type: string
+                  enum:
+                  - jobs
+                  - companies
+                  - technology_adoption
+                truncated:
+                  type: boolean
+                  description: True when the check stopped before scanning every new posting.
+                timestamp:
+                  type: integer
+                  description: Unix seconds when the batch was built.
+                data:
+                  type: array
+                  maxItems: 100
+                  items:
+                    type: object
+                    description: One matched job or company, or in technology_adoption mode (beta) one company starting to hire for one technology. See the Webhooks page on docs.jobspipe.dev for the item fields.
+      responses:
+        '200':
+          description: Acknowledged. Same timeout and retry schedule as job.closed.
+      tags:
+      - JobsPipe API
+components:
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
+      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
+x-service-info:
+  categories:
+  - data
+  - jobs
+  - technographics
+  docs:
+    homepage: https://jobspipe.dev
+    apiReference: https://docs.jobspipe.dev
+    llms: https://jobspipe.dev/llms.txt

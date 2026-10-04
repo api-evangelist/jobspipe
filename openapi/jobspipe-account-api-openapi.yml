@@ -1,0 +1,106 @@
+openapi: 3.2.0
+info:
+  title: JobsPipe Account API
+  version: 1.0.0
+  description: JobsPipe is a unified data API over public job and technographic sources.
+  contact:
+    name: JobsPipe
+    url: https://jobspipe.dev
+    email: support@jobspipe.dev
+servers:
+- url: https://api.jobspipe.dev
+security:
+- apiKey: []
+tags:
+- name: Account
+paths:
+  /v1/account:
+    get:
+      operationId: getAccount
+      summary: Get the account behind this credential
+      x-consequence: read-only
+      x-side-effects: none - consumes no credits
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: Returns who the API key or OAuth token belongs to, the plan it is on and this calendar month's credit usage. Costs no credits and does not count against the per-second rate limit, so call it before a large search to check what is left.
+      responses:
+        '200':
+          description: The connected account.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                  email:
+                    type:
+                    - string
+                    - 'null'
+                  name:
+                    type:
+                    - string
+                    - 'null'
+                  auth_type:
+                    type: string
+                    description: 'How the request was authenticated: api_key, oauth or session.'
+                  plan:
+                    type: string
+                    description: A plan name, or credits:N for N thousand credits a month.
+                  month:
+                    type: string
+                    description: The calendar month the usage figures cover, YYYY-MM in UTC.
+                  monthly_credits:
+                    type: integer
+                  credits_used:
+                    type: integer
+                  credits_remaining:
+                    type: integer
+                  extra_credits:
+                    type: integer
+                    description: One-time credits bought on top of the plan, drawn after the monthly allowance.
+                  max_results_per_request:
+                    type: integer
+                  requests_per_second:
+                    type: number
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+      - Account
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
+        message:
+          type: string
+          description: Additional detail. Present on 402 quota responses; other errors carry only error.
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
+      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
+x-service-info:
+  categories:
+  - data
+  - jobs
+  - technographics
+  docs:
+    homepage: https://jobspipe.dev
+    apiReference: https://docs.jobspipe.dev
+    llms: https://jobspipe.dev/llms.txt

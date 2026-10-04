@@ -1,0 +1,176 @@
+openapi: 3.2.0
+info:
+  title: JobsPipe Billing API
+  version: 1.0.0
+  description: JobsPipe is a unified data API over public job and technographic sources.
+  contact:
+    name: JobsPipe
+    url: https://jobspipe.dev
+    email: support@jobspipe.dev
+servers:
+- url: https://api.jobspipe.dev
+security:
+- apiKey: []
+tags:
+- name: Billing
+paths:
+  /v1/billing/checkout:
+    post:
+      operationId: createBillingCheckout
+      summary: Start a package purchase
+      x-consequence: creates a Stripe Checkout or billing-portal link for the account holder
+      x-side-effects: none until the account holder pays - the call itself charges nothing and consumes no credits
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: 'Returns a Stripe link where the account holder buys a package, or confirms a move to a larger one. The call charges and changes nothing; the new monthly allowance applies once the account holder completes the Stripe page, usually within a minute. A smaller package is refused with 409 downgrade_requires_dashboard: downgrades are made on the billing page. Send a package, or credits (the smallest package that covers them is chosen), or an empty body to be offered the package that covers 1.5x this month''s use. Built for AI agents: hand the url to the person who pays.'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                package:
+                  type: string
+                  enum:
+                  - builder
+                  - growth
+                  - scale
+                  - business
+                  description: The package to buy. Wins over credits when both are sent.
+                credits:
+                  type: integer
+                  minimum: 1
+                  description: Monthly credits wanted; the smallest package that covers them is chosen. Above 500,000 is an Enterprise plan and answers 400.
+            example:
+              package: growth
+      responses:
+        '200':
+          description: A link to pay or confirm.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - url
+                - flow
+                - package
+                - credits
+                - price_usd
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: Where the account holder pays or confirms. Open it in a browser.
+                  flow:
+                    type: string
+                    enum:
+                    - checkout
+                    - portal
+                    description: 'checkout: Stripe Checkout for a new subscription. portal: a Stripe page where the account holder confirms the move to a larger package.'
+                  package:
+                    type: string
+                    description: The package chosen.
+                  credits:
+                    type: integer
+                    description: Credits a month on that package.
+                  billing_interval:
+                    type: string
+                    enum:
+                    - month
+                    - year
+                    description: 'How the package is billed: the account''s current interval (a yearly subscriber stays yearly; credits still refresh every month). New purchases here are monthly; yearly is chosen on the billing page.'
+                  price_usd:
+                    type: number
+                    description: The package's price in USD per billing_interval.
+              example:
+                url: https://checkout.stripe.com/c/pay/cs_live_a1B2c3
+                flow: checkout
+                package: growth
+                credits: 100000
+                billing_interval: month
+                price_usd: 149
+        '400':
+          description: Unknown package (bad_package), credits that are not a positive whole number (bad_credits), or more than the largest package (enterprise, with contact_url).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingCheckoutError'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 'The account already holds that package (already_subscribed), or asked for a smaller one (downgrade_requires_dashboard, with billing_url): downgrades are made on the billing page.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingCheckoutError'
+        '502':
+          description: Stripe could not start the checkout (checkout_failed). Retry, or upgrade from the billing page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingCheckoutError'
+      tags:
+      - Billing
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
+        message:
+          type: string
+          description: Additional detail. Present on 402 quota responses; other errors carry only error.
+    BillingCheckoutError:
+      type: object
+      required:
+      - error
+      - message
+      properties:
+        error:
+          type: string
+          enum:
+          - bad_package
+          - bad_credits
+          - enterprise
+          - already_subscribed
+          - downgrade_requires_dashboard
+          - checkout_failed
+        message:
+          type: string
+        contact_url:
+          type: string
+          format: uri
+          description: 'enterprise only: where to arrange a plan above the largest package.'
+        billing_url:
+          type: string
+          format: uri
+          description: 'downgrade_requires_dashboard only: the billing page where the account holder changes to a smaller package.'
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
+      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
+x-service-info:
+  categories:
+  - data
+  - jobs
+  - technographics
+  docs:
+    homepage: https://jobspipe.dev
+    apiReference: https://docs.jobspipe.dev
+    llms: https://jobspipe.dev/llms.txt
