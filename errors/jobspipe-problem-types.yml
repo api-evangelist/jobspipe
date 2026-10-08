@@ -1,0 +1,78 @@
+generated: '2026-10-02'
+method: derived
+generator: derive-problem-types.py
+source:
+- openapi/jobspipe-openapi.json
+format: custom
+envelope:
+  media_type: application/json
+  schema: ErrorResponse
+coverage:
+  operations: 33
+  statuses_declared: 9
+problems:
+- status: 400
+  title: Bad Request
+  description: Invalid request.
+  operations: 18
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 401
+  title: Unauthorized
+  description: Missing or invalid API key.
+  operations: 29
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 402
+  title: Payment Required
+  description: Monthly request quota exceeded.
+  operations: 27
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 404
+  title: Not Found
+  description: No such monitor or webhook on this account.
+  operations: 20
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 409
+  title: Conflict
+  description: 'export_in_progress: another export for this account is being prepared.'
+  operations: 2
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 429
+  title: Too Many Requests
+  description: Per-second rate limit exceeded.
+  operations: 19
+  media_types:
+  - application/json
+  schema: RateLimitErrorResponse
+- status: 502
+  title: Bad Gateway
+  description: The search backend failed. error is "Job search is temporarily unavailable. Retry shortly." Consumes
+    no credits; safe to retry with backoff.
+  operations: 4
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 503
+  title: Service Unavailable
+  description: Agentic search is switched off. error names /v1/jobs/search as the alternative. Consumes no credits.
+  operations: 2
+  media_types:
+  - application/json
+  schema: ErrorResponse
+- status: 504
+  title: Gateway Timeout
+  description: The query was too expensive to complete within the search time or memory limit. error is "Job search
+    timed out. Narrow your filters and retr
+  operations: 2
+  media_types:
+  - application/json
+  schema: ErrorResponse

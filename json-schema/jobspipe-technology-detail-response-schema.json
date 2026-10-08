@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/jobspipe/main/json-schema/jobspipe-technology-detail-response-schema.json",
+  "title": "TechnologyDetailResponse",
+  "x-generated": "2026-10-02",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/jobspipe-openapi.json#/components/schemas/TechnologyDetailResponse",
+  "type": "object",
+  "properties": {
+    "as_of": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "technology": {
+      "$ref": "#/$defs/Technology"
+    },
+    "companies": {
+      "type": "integer"
+    },
+    "jobs": {
+      "type": "integer"
+    },
+    "first_date_found": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "last_date_found": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "companies_by_tier": {
+      "type": "object",
+      "properties": {
+        "confirmed": {
+          "type": "integer"
+        },
+        "likely": {
+          "type": "integer"
+        },
+        "mentioned": {
+          "type": "integer"
+        }
+      }
+    },
+    "top_countries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "top_occupations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "top_companies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TechnologyCompany"
+      }
+    },
+    "recently_adopted": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TechnologyCompany"
+      }
+    },
+    "monthly_adoption": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "string"
+          },
+          "companies": {
+            "type": "integer",
+            "description": "Companies whose first posting naming it is in this month."
+          },
+          "active_companies": {
+            "type": "integer",
+            "description": "Companies with a posting naming it in this month."
+          },
+          "jobs": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Technology": {
+      "type": "object",
+      "properties": {
+        "slug": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category_slug": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parent_category": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "product, methodology, certification or standard."
+        },
+        "logo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "TechnologyCompany": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "logo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "likely",
+            "mentioned"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "jobs": {
+          "type": "integer"
+        },
+        "first_date_found": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_date_found": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}

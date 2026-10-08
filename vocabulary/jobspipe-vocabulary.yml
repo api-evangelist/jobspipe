@@ -1,0 +1,184 @@
+generated: '2026-10-02'
+method: derived
+generator: derive-vocabulary.py
+source: openapi/jobspipe-openapi.json
+vocabulary:
+  name: JobsPipe Domain Vocabulary
+  description: 'Terms declared by JobsPipe''s own API contract: its resource groups, objects and enumerations, with the contract''s definitions.
+    Derived, not authored.'
+  version: '2026-10-02'
+  terms:
+  - term: InsightRankingItem
+    definition: 'Object declared by the contract with fields: value, label, count, share.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightRankingItem
+  - term: InsightOccupationsResponse
+    definition: 'Object declared by the contract with fields: window_days, occupations.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightOccupationsResponse
+  - term: InsightIndustriesResponse
+    definition: 'Object declared by the contract with fields: window_days, industries.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightIndustriesResponse
+  - term: InsightSnapshotResponse
+    definition: 'Object declared by the contract with fields: occupation_code, occupation_label, window_days, count, remote_share, top_companies,
+      top_titles, countries.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightSnapshotResponse
+  - term: InsightCompensationResponse
+    definition: 'Object declared by the contract with fields: occupation_code, occupation_label, window_days, country, count, currency, percentiles,
+      confidence, suppressed.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightCompensationResponse
+  - term: InsightTopSkillsResponse
+    definition: 'Object declared by the contract with fields: scope, window_days, skills.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightTopSkillsResponse
+  - term: InsightTrendingResponse
+    definition: 'Object declared by the contract with fields: scope, window_days, direction, skills.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightTrendingResponse
+  - term: InsightSkillTrendResponse
+    definition: 'Object declared by the contract with fields: skill, window_days, series, top_occupations, top_industries.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightSkillTrendResponse
+  - term: InsightAiExposureResponse
+    definition: 'Object declared by the contract with fields: window_days, by, rows.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightAiExposureResponse
+  - term: InsightBenchmarkRequest
+    definition: Requires occupation_code or title.
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/InsightBenchmarkRequest
+  - term: JobSearchRequest
+    definition: Optional filters for the job search. All fields are optional and combine with AND. Array filters ending in _or match any of their
+      values; those ending in _not exclude their values. Unknown fields are rejected with HTTP 400.
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/JobSearchRequest
+  - term: CompanyObject
+    definition: Structured details about the hiring company. Every field is independently optional.
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/CompanyObject
+  - term: JobTechnology
+    definition: 'One technology a posting names, graded. Beta: served while the per-job technologies flag is on.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/JobTechnology
+  - term: JobSource
+    definition: One board a posting was seen on.
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/JobSource
+  - term: Job
+    definition: A normalized job posting.
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/Job
+  - term: JobSearchResponse
+    definition: 'Object declared by the contract with fields: metadata, data.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/JobSearchResponse
+  - term: AgenticSearchRequest
+    definition: 'Object declared by the contract with fields: query, filters, limit.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/AgenticSearchRequest
+  - term: AgenticSearchResponse
+    definition: 'Object declared by the contract with fields: metadata, data.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/AgenticSearchResponse
+  - term: StackScanRequest
+    definition: 'Object declared by the contract with fields: domain, mode.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/StackScanRequest
+  - term: DetectedTech
+    definition: A technology detected on the scanned domain.
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/DetectedTech
+  - term: StackScanResponse
+    definition: 'Object declared by the contract with fields: domain, scanned_at, http_status, render_path, detected.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/StackScanResponse
+  - term: Technology
+    definition: 'Object declared by the contract with fields: slug, name, category, category_slug, parent_category, kind, logo.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/Technology
+  - term: TechnologyFound
+    definition: 'Object declared by the contract with fields: technology, confidence, tier, jobs, jobs_last_7_days, jobs_last_30_days, jobs_last_180_days,
+      first_date_found, last_date_found, rank_within_category, relative_occurrence_within_category, required_jobs. (6 more)'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/TechnologyFound
+  - term: TechCompany
+    definition: 'Object declared by the contract with fields: id, name, domain, url, logo, country_code, employee_count, employee_count_range,
+      founded_year, annual_revenue_usd, industry, linkedin_url. (7 more)'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/TechCompany
+  - term: CompanySearchRequest
+    definition: 'Object declared by the contract with fields: company_technology_slug_or, company_technology_slug_and, company_technology_slug_not,
+      expand_technology_slugs, min_num_jobs_found, company_country_code_or, company_domain_or, company_name_or, min_employee_count, max_employee_count,
+      include_total_results, order_by. (6 more)'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/CompanySearchRequest
+  - term: CompanySearchResponse
+    definition: 'Object declared by the contract with fields: metadata, data.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/CompanySearchResponse
+  - term: CompanyTechnologiesResponse
+    definition: 'Object declared by the contract with fields: as_of, company, num_jobs, num_technologies, data.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/CompanyTechnologiesResponse
+  - term: TechnologyListResponse
+    definition: 'Object declared by the contract with fields: as_of, metadata, data.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/TechnologyListResponse
+  - term: TechnologyCompany
+    definition: 'Object declared by the contract with fields: id, name, domain, url, logo, tier, confidence, jobs, first_date_found, last_date_found.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/TechnologyCompany
+  - term: TechnologyDetailResponse
+    definition: 'Object declared by the contract with fields: as_of, technology, companies, jobs, first_date_found, last_date_found, companies_by_tier,
+      top_countries, top_occupations, top_companies, recently_adopted, monthly_adoption.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/TechnologyDetailResponse
+  - term: BillingCheckoutError
+    definition: 'Object declared by the contract with fields: error, message, contact_url, billing_url.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/BillingCheckoutError
+  - term: ErrorResponse
+    definition: 'Object declared by the contract with fields: error, message.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/ErrorResponse
+  - term: RateLimitErrorResponse
+    definition: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit,
+      RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+    tags:
+    - Object
+    source: openapi/jobspipe-openapi.json#/components/schemas/RateLimitErrorResponse

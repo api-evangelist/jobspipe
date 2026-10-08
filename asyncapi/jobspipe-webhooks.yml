@@ -1,0 +1,18 @@
+generated: '2026-10-02'
+method: searched
+generator: extract-docs-artifacts.py (local)
+source: https://docs.jobspipe.dev/api-reference/webhooks
+sources:
+- https://docs.jobspipe.dev/api-reference/webhooks
+description: JobsPipe provides webhooks for job closure events and Signal match events.
+events:
+- event: job.closed
+  description: A job in one of your monitors closes.
+- event: alert.matched
+  description: A Signal with a webhook destination posts when it finds new matches.
+- event: alert.test
+  description: A signed test with an empty data array is sent when a Signal webhook destination is created.
+delivery:
+  signature: HMAC‑SHA256 verification using a signing secret that starts with "whsec_" (provided per endpoint).
+note: Test deliveries are not retried. Retries resend the first attempt's body unchanged.
+docs: https://docs.jobspipe.dev/api-reference/webhooks

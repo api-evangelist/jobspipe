@@ -1,0 +1,25 @@
+generated: '2026-10-02'
+method: searched
+generator: extract-docs-artifacts.py (local)
+source: https://docs.jobspipe.dev/usage/rate-limits
+sources:
+- https://docs.jobspipe.dev/usage/rate-limits
+name: JobsPipe rate limits
+limits:
+- name: Free
+  limit_text: 2 / second
+  max: 2
+  window: second
+  plan: Free
+- name: Builder/Growth
+  limit_text: 10 / second
+  max: 10
+  window: second
+  plan: Builder, Growth
+- name: Scale/Business
+  limit_text: 50 / second
+  max: 50
+  window: second
+  plan: Scale, Business
+exhaustion_status: 429
+docs: https://docs.jobspipe.dev/usage/rate-limits

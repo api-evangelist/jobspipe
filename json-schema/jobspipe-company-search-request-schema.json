@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/jobspipe/main/json-schema/jobspipe-company-search-request-schema.json",
+  "title": "CompanySearchRequest",
+  "x-generated": "2026-10-02",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/jobspipe-openapi.json#/components/schemas/CompanySearchRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "company_technology_slug_or": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10
+    },
+    "company_technology_slug_and": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10
+    },
+    "company_technology_slug_not": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10
+    },
+    "expand_technology_slugs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 10
+    },
+    "min_num_jobs_found": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "company_country_code_or": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Countries of the postings that name the technology."
+    },
+    "company_domain_or": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "company_name_or": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "min_employee_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_employee_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "include_total_results": {
+      "type": "boolean"
+    },
+    "order_by": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "enum": [
+              "num_jobs",
+              "num_jobs_found",
+              "num_jobs_last_30_days",
+              "employee_count"
+            ]
+          },
+          "desc": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "field"
+        ]
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000,
+      "default": 25
+    },
+    "page": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cursor": {
+      "type": "string"
+    },
+    "tier_min": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "likely",
+        "mentioned"
+      ],
+      "default": "likely"
+    },
+    "job_filters": {
+      "type": "object",
+      "description": "Only job_country_code_or and posted_at_max_age_days are applied in the beta; other job filters are accepted and ignored.",
+      "properties": {
+        "job_country_code_or": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "posted_at_max_age_days": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+generated: '2026-10-02'
+method: generated
+generator: extract-docs-artifacts.py skills (local)
+source: openapi/jobspipe-openapi.json
+skills:
+- file: skills/jobspipe-labour-market-insights.md
+  name: jobspipe-labour-market-insights
+  api: openapi/jobspipe-openapi.json
+  operations:
+  - insightsOccupations
+  - insightsOccupationSnapshot
+  - insightsCompensation
+  - insightsTopSkills
+- file: skills/jobspipe-companies-tech-stack.md
+  name: jobspipe-companies-tech-stack
+  api: openapi/jobspipe-openapi.json
+  operations:
+  - searchCompaniesByTechnology
+  - getCompanyTechnologies

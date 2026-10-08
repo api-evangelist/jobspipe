@@ -1,0 +1,26 @@
+generated: '2026-10-02'
+method: searched
+generator: extract-docs-artifacts.py (local)
+source: https://docs.jobspipe.dev/authentication
+sources:
+- https://docs.jobspipe.dev/authentication
+- https://docs.jobspipe.dev/dashboard/api-keys
+- https://docs.jobspipe.dev/quickstart
+description: JobsPipe authenticates every API request with a secret Bearer key.
+schemes:
+- type: http-bearer
+  name: Authorization
+  evidence: JobsPipe authenticates every API request with a secret Bearer key.
+  location: header
+  header: Authorization
+  how_to_obtain: Generate an API key in the dashboard (Settings → API Keys). The key starts with jp_live_ and is shown only once. Use it as a
+    Bearer token.
+- type: apiKey
+  name: x-api-key
+  evidence: JobsPipe authenticates every API request with a secret Bearer key.
+  location: header
+  header: x-api-key
+  how_to_obtain: Generate an API key in the dashboard (Settings → API Keys). The key starts with jp_live_ and is shown only once. Send the key
+    in the x-api-key header.
+note: The sandbox endpoints under /v1/sandbox do not require an API key.
+docs: https://docs.jobspipe.dev/authentication

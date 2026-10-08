@@ -1,0 +1,16 @@
+{
+  "resource": "https://api.jobspipe.dev",
+  "authorization_servers": [
+    "https://api.jobspipe.dev"
+  ],
+  "jwks_uri": "https://api.jobspipe.dev/api/auth/jwks",
+  "bearer_methods_supported": [
+    "header"
+  ],
+  "scopes_supported": [
+    "jobs:read",
+    "stack:read"
+  ],
+  "resource_name": "JobsPipe API",
+  "resource_documentation": "https://docs.jobspipe.dev"
+}

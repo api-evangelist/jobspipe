@@ -14,6 +14,11 @@ created: '2026-10-02'
 modified: '2026-10-02'
 tags:
 - Company
+- Job
+- Data
+- Hiring
+tags_raw:
+- Company
 - Jobs
 - API
 - Data
@@ -181,6 +186,8 @@ apis:
   humanURL: https://docs.jobspipe.dev
   baseURL: https://api.jobspipe.dev
   tags:
+  - Job
+  tags_raw:
   - Jobs
   properties:
   - type: OpenAPI
@@ -314,6 +321,8 @@ apis:
   humanURL: https://docs.jobspipe.dev
   baseURL: https://api.jobspipe.dev
   tags:
+  - technologies
+  tags_raw:
   - Technologies
   properties:
   - type: OpenAPI

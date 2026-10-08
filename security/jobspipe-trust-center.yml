@@ -1,0 +1,12 @@
+generated: '2026-10-02'
+method: searched
+probe: true
+source: https://jobspipe.dev/trust
+url: https://jobspipe.dev/trust
+certifications:
+- GDPR
+evidence:
+- source: https://jobspipe.dev/trust
+  keywords:
+  - trust center
+  - gdpr

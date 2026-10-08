@@ -1,0 +1,453 @@
+generated: '2026-10-02'
+method: generated
+source: openapi/jobspipe-openapi.json
+description: Recommended x-agentic-access execution contracts, classified heuristically from
+  the OpenAPI. A governance starting point for exposing this API to AI agents — review and bind
+  audience per deployment. See research/curity/agentic-governance/.
+summary:
+  operations: 33
+  by_action_class:
+    connected: 22
+    acting: 11
+  by_consequence:
+    read: 22
+    write: 10
+    physical: 1
+  human_in_the_loop_required: 0
+operations:
+- path: /v1/jobs/search
+  method: post
+  operationId: searchJobs
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/jobs/agentic-search
+  method: post
+  operationId: agenticSearchJobs
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/stack/scan
+  method: post
+  operationId: scanStack
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - stack:read
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/companies/{key}
+  method: get
+  operationId: getCompany
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/companies/search
+  method: post
+  operationId: searchCompaniesByTechnology
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/companies/{key}/technologies
+  method: get
+  operationId: getCompanyTechnologies
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/technologies
+  method: get
+  operationId: listTechnologies
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/technologies/export
+  method: get
+  operationId: exportTechnologies
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/technologies/{slug}
+  method: get
+  operationId: getTechnology
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/monitors
+  method: post
+  operationId: createMonitor
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - jobs:read
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/monitors
+  method: get
+  operationId: listMonitors
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/monitors/{id}
+  method: get
+  operationId: getMonitor
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/monitors/{id}
+  method: delete
+  operationId: deleteMonitor
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - jobs:read
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/monitors/{id}/renew
+  method: post
+  operationId: renewMonitor
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - jobs:read
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/monitors/{id}/ids
+  method: post
+  operationId: addMonitorIds
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - jobs:read
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/monitors/{id}/ids
+  method: delete
+  operationId: removeMonitorIds
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    scope:
+    - jobs:read
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/monitors/{id}/ids
+  method: get
+  operationId: listMonitorIds
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/account
+  method: get
+  operationId: getAccount
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    scope:
+    - jobs:read
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/billing/checkout
+  method: post
+  operationId: createBillingCheckout
+  x-agentic-access:
+    action-class: acting
+    consequence: physical
+    subject: required
+    scope:
+    - jobs:read
+    audience: null
+    token:
+      max-ttl: 300
+      exchange: true
+      purpose-required: true
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/insights/occupations
+  method: get
+  operationId: insightsOccupations
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/occupations/{code}
+  method: get
+  operationId: insightsOccupationSnapshot
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/occupations/{code}/compensation
+  method: get
+  operationId: insightsCompensation
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/occupations/{code}/skills/top
+  method: get
+  operationId: insightsTopSkills
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/occupations/{code}/skills/trending
+  method: get
+  operationId: insightsTrendingSkillsByOccupation
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/industries
+  method: get
+  operationId: insightsIndustries
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/industries/{division}/skills/trending
+  method: get
+  operationId: insightsTrendingSkillsByIndustry
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/skills/{slug}/trend
+  method: get
+  operationId: insightsSkillTrend
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/technology/ai-exposure
+  method: get
+  operationId: insightsAiExposure
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none
+- path: /v1/insights/salary/benchmark
+  method: post
+  operationId: insightsSalaryBenchmark
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/sandbox/jobs/search
+  method: post
+  operationId: sandboxSearchJobs
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/sandbox/jobs/search/batch
+  method: post
+  operationId: sandboxSearchJobsBatch
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/sandbox/jobs/export
+  method: post
+  operationId: sandboxCreateExport
+  x-agentic-access:
+    action-class: acting
+    consequence: write
+    subject: required
+    audience: null
+    token:
+      max-ttl: 900
+    escalation:
+      human-in-the-loop: conditional
+      triggers:
+      - abnormal
+      - high-value
+    audit: required
+- path: /v1/sandbox/jobs/export/{id}
+  method: get
+  operationId: sandboxGetExport
+  x-agentic-access:
+    action-class: connected
+    consequence: read
+    subject: optional
+    token:
+      max-ttl: 3600
+    audit: none

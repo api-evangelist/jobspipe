@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "JobsPipe",
+  "name_for_model": "jobspipe",
+  "description_for_human": "Search live job postings from 30+ ATS feeds and job boards as one normalized schema, and detect the technologies any company runs.",
+  "description_for_model": "Use jobspipe to search live, normalized job postings (title, company, salary, location, remote, posted date) across 30+ sources, and to scan a company domain for its technology stack. Authenticate with a Bearer API key (prefix jp_live_) from https://jobspipe.dev/signup. A free no-auth sandbox lives under /v1/sandbox.",
+  "auth": {
+    "type": "user_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://jobspipe.dev/openapi.json"
+  },
+  "logo_url": "https://jobspipe.dev/icon.png",
+  "contact_email": "support@jobspipe.dev",
+  "legal_info_url": "https://jobspipe.dev/privacy"
+}

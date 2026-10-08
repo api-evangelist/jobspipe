@@ -1,0 +1,992 @@
+{
+  "@context": {
+    "@vocab": "https://jobspipe.dev/schema#",
+    "schema": "https://schema.org/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "jobspipe": "https://jobspipe.dev/schema#",
+    "InsightRankingItem": "jobspipe:InsightRankingItem",
+    "value": {
+      "@id": "jobspipe:value",
+      "@type": "xsd:string"
+    },
+    "label": {
+      "@id": "jobspipe:label",
+      "@type": "xsd:string"
+    },
+    "count": {
+      "@id": "jobspipe:count",
+      "@type": "xsd:integer"
+    },
+    "share": {
+      "@id": "jobspipe:share",
+      "@type": "xsd:decimal"
+    },
+    "InsightOccupationsResponse": "jobspipe:InsightOccupationsResponse",
+    "window_days": {
+      "@id": "jobspipe:window_days",
+      "@type": "xsd:integer"
+    },
+    "occupations": {
+      "@id": "jobspipe:occupations",
+      "@container": "@list"
+    },
+    "InsightIndustriesResponse": "jobspipe:InsightIndustriesResponse",
+    "industries": {
+      "@id": "jobspipe:industries",
+      "@container": "@list"
+    },
+    "InsightSnapshotResponse": "jobspipe:InsightSnapshotResponse",
+    "occupation_code": {
+      "@id": "jobspipe:occupation_code",
+      "@type": "xsd:string"
+    },
+    "occupation_label": {
+      "@id": "jobspipe:occupation_label",
+      "@type": "xsd:string"
+    },
+    "remote_share": {
+      "@id": "jobspipe:remote_share",
+      "@type": "xsd:decimal"
+    },
+    "top_companies": {
+      "@id": "jobspipe:top_companies",
+      "@container": "@list"
+    },
+    "top_titles": {
+      "@id": "jobspipe:top_titles",
+      "@container": "@list"
+    },
+    "countries": {
+      "@id": "jobspipe:countries",
+      "@container": "@list"
+    },
+    "InsightCompensationResponse": "jobspipe:InsightCompensationResponse",
+    "country": {
+      "@id": "jobspipe:country",
+      "@type": "xsd:string"
+    },
+    "currency": {
+      "@id": "jobspipe:currency",
+      "@type": "xsd:string"
+    },
+    "percentiles": {
+      "@id": "jobspipe:percentiles"
+    },
+    "confidence": {
+      "@id": "jobspipe:confidence",
+      "@type": "xsd:string"
+    },
+    "suppressed": {
+      "@id": "jobspipe:suppressed",
+      "@type": "xsd:boolean"
+    },
+    "InsightTopSkillsResponse": "jobspipe:InsightTopSkillsResponse",
+    "scope": {
+      "@id": "jobspipe:scope"
+    },
+    "skills": {
+      "@id": "jobspipe:skills",
+      "@container": "@list"
+    },
+    "InsightTrendingResponse": "jobspipe:InsightTrendingResponse",
+    "direction": {
+      "@id": "jobspipe:direction",
+      "@type": "xsd:string"
+    },
+    "InsightSkillTrendResponse": "jobspipe:InsightSkillTrendResponse",
+    "skill": {
+      "@id": "jobspipe:skill",
+      "@type": "xsd:string"
+    },
+    "series": {
+      "@id": "jobspipe:series",
+      "@container": "@list"
+    },
+    "top_occupations": {
+      "@id": "jobspipe:top_occupations",
+      "@container": "@list"
+    },
+    "top_industries": {
+      "@id": "jobspipe:top_industries",
+      "@container": "@list"
+    },
+    "InsightAiExposureResponse": "jobspipe:InsightAiExposureResponse",
+    "by": {
+      "@id": "jobspipe:by",
+      "@type": "xsd:string"
+    },
+    "rows": {
+      "@id": "jobspipe:rows",
+      "@container": "@list"
+    },
+    "InsightBenchmarkRequest": "jobspipe:InsightBenchmarkRequest",
+    "title": {
+      "@id": "jobspipe:title",
+      "@type": "xsd:string"
+    },
+    "seniority": {
+      "@id": "jobspipe:seniority",
+      "@type": "xsd:string"
+    },
+    "JobSearchRequest": "jobspipe:JobSearchRequest",
+    "job_title_or": {
+      "@id": "jobspipe:job_title_or",
+      "@container": "@list"
+    },
+    "job_title_not": {
+      "@id": "jobspipe:job_title_not",
+      "@container": "@list"
+    },
+    "description_or": {
+      "@id": "jobspipe:description_or",
+      "@container": "@list"
+    },
+    "description_not": {
+      "@id": "jobspipe:description_not",
+      "@container": "@list"
+    },
+    "job_country_code_or": {
+      "@id": "jobspipe:job_country_code_or",
+      "@container": "@list"
+    },
+    "job_country_code_not": {
+      "@id": "jobspipe:job_country_code_not",
+      "@container": "@list"
+    },
+    "job_location_or": {
+      "@id": "jobspipe:job_location_or",
+      "@container": "@list"
+    },
+    "city_or": {
+      "@id": "jobspipe:city_or",
+      "@container": "@list"
+    },
+    "job_seniority_or": {
+      "@id": "jobspipe:job_seniority_or",
+      "@container": "@list"
+    },
+    "include_unlabeled_employment_type": {
+      "@id": "jobspipe:include_unlabeled_employment_type",
+      "@type": "xsd:boolean"
+    },
+    "include_unlabeled_seniority": {
+      "@id": "jobspipe:include_unlabeled_seniority",
+      "@type": "xsd:boolean"
+    },
+    "skills_or": {
+      "@id": "jobspipe:skills_or",
+      "@container": "@list"
+    },
+    "occupation_code_or": {
+      "@id": "jobspipe:occupation_code_or",
+      "@container": "@list"
+    },
+    "isic_division_or": {
+      "@id": "jobspipe:isic_division_or",
+      "@container": "@list"
+    },
+    "region_or": {
+      "@id": "jobspipe:region_or",
+      "@container": "@list"
+    },
+    "employment_type_or": {
+      "@id": "jobspipe:employment_type_or",
+      "@container": "@list"
+    },
+    "language_or": {
+      "@id": "jobspipe:language_or",
+      "@container": "@list"
+    },
+    "language_not": {
+      "@id": "jobspipe:language_not",
+      "@container": "@list"
+    },
+    "source_or": {
+      "@id": "jobspipe:source_or",
+      "@container": "@list"
+    },
+    "source_not": {
+      "@id": "jobspipe:source_not",
+      "@container": "@list"
+    },
+    "company_name_partial_match_or": {
+      "@id": "jobspipe:company_name_partial_match_or",
+      "@container": "@list"
+    },
+    "company_technology_slug_or": {
+      "@id": "jobspipe:company_technology_slug_or",
+      "@container": "@list"
+    },
+    "min_employee_count": {
+      "@id": "jobspipe:min_employee_count",
+      "@type": "xsd:integer"
+    },
+    "max_employee_count": {
+      "@id": "jobspipe:max_employee_count",
+      "@type": "xsd:integer"
+    },
+    "min_revenue_usd": {
+      "@id": "jobspipe:min_revenue_usd",
+      "@type": "xsd:decimal"
+    },
+    "max_revenue_usd": {
+      "@id": "jobspipe:max_revenue_usd",
+      "@type": "xsd:decimal"
+    },
+    "remote": {
+      "@id": "jobspipe:remote",
+      "@type": "xsd:boolean"
+    },
+    "work_arrangement_or": {
+      "@id": "jobspipe:work_arrangement_or",
+      "@container": "@list"
+    },
+    "visa_sponsorship_or": {
+      "@id": "jobspipe:visa_sponsorship_or",
+      "@container": "@list"
+    },
+    "benefits_or": {
+      "@id": "jobspipe:benefits_or",
+      "@container": "@list"
+    },
+    "metro_code_or": {
+      "@id": "jobspipe:metro_code_or",
+      "@container": "@list"
+    },
+    "max_applicant_count": {
+      "@id": "jobspipe:max_applicant_count",
+      "@type": "xsd:integer"
+    },
+    "has_recruiter_email": {
+      "@id": "jobspipe:has_recruiter_email",
+      "@type": "xsd:boolean"
+    },
+    "min_salary_usd": {
+      "@id": "jobspipe:min_salary_usd",
+      "@type": "xsd:integer"
+    },
+    "max_ghost_score": {
+      "@id": "jobspipe:max_ghost_score",
+      "@type": "xsd:integer"
+    },
+    "include_unknown": {
+      "@id": "jobspipe:include_unknown",
+      "@container": "@list"
+    },
+    "last_verified_max_age_days": {
+      "@id": "jobspipe:last_verified_max_age_days",
+      "@type": "xsd:integer"
+    },
+    "esco_skill_id_or": {
+      "@id": "jobspipe:esco_skill_id_or",
+      "@container": "@list"
+    },
+    "posted_at_max_age_days": {
+      "@id": "jobspipe:posted_at_max_age_days",
+      "@type": "xsd:integer"
+    },
+    "posted_at_gte": {
+      "@id": "jobspipe:posted_at_gte",
+      "@type": "xsd:string"
+    },
+    "posted_at_lte": {
+      "@id": "jobspipe:posted_at_lte",
+      "@type": "xsd:string"
+    },
+    "discovered_at_gte": {
+      "@id": "jobspipe:discovered_at_gte",
+      "@type": "xsd:string"
+    },
+    "limit": {
+      "@id": "jobspipe:limit",
+      "@type": "xsd:integer"
+    },
+    "offset": {
+      "@id": "jobspipe:offset",
+      "@type": "xsd:integer"
+    },
+    "page": {
+      "@id": "jobspipe:page",
+      "@type": "xsd:integer"
+    },
+    "cursor": {
+      "@id": "jobspipe:cursor",
+      "@type": "xsd:string"
+    },
+    "order_by": {
+      "@id": "jobspipe:order_by",
+      "@container": "@list"
+    },
+    "status": {
+      "@id": "jobspipe:status",
+      "@type": "xsd:string"
+    },
+    "company_name_or": {
+      "@id": "jobspipe:company_name_or",
+      "@container": "@list"
+    },
+    "job_id_or": {
+      "@id": "jobspipe:job_id_or",
+      "@container": "@list"
+    },
+    "job_ids": {
+      "@id": "jobspipe:job_ids",
+      "@container": "@list"
+    },
+    "include_unknown_size": {
+      "@id": "jobspipe:include_unknown_size",
+      "@type": "xsd:boolean"
+    },
+    "employer_type_or": {
+      "@id": "jobspipe:employer_type_or",
+      "@container": "@list"
+    },
+    "employer_type_not": {
+      "@id": "jobspipe:employer_type_not",
+      "@container": "@list"
+    },
+    "include_total_results": {
+      "@id": "jobspipe:include_total_results",
+      "@type": "xsd:boolean"
+    },
+    "include_technologies": {
+      "@id": "jobspipe:include_technologies",
+      "@type": "xsd:boolean"
+    },
+    "blur_company_data": {
+      "@id": "jobspipe:blur_company_data",
+      "@type": "xsd:boolean"
+    },
+    "CompanyObject": "jobspipe:CompanyObject",
+    "name": {
+      "@id": "jobspipe:name",
+      "@type": "xsd:string"
+    },
+    "domain": {
+      "@id": "jobspipe:domain",
+      "@type": "xsd:string"
+    },
+    "url": {
+      "@id": "jobspipe:url",
+      "@type": "xsd:string"
+    },
+    "logo": {
+      "@id": "jobspipe:logo",
+      "@type": "xsd:string"
+    },
+    "employee_count": {
+      "@id": "jobspipe:employee_count",
+      "@type": "xsd:integer"
+    },
+    "employee_count_min": {
+      "@id": "jobspipe:employee_count_min",
+      "@type": "xsd:integer"
+    },
+    "linkedin_url": {
+      "@id": "jobspipe:linkedin_url",
+      "@type": "xsd:string"
+    },
+    "description": {
+      "@id": "jobspipe:description",
+      "@type": "xsd:string"
+    },
+    "location": {
+      "@id": "jobspipe:location"
+    },
+    "founded": {
+      "@id": "jobspipe:founded",
+      "@type": "xsd:string"
+    },
+    "intelligence": {
+      "@id": "jobspipe:intelligence"
+    },
+    "JobTechnology": "jobspipe:JobTechnology",
+    "slug": {
+      "@id": "jobspipe:slug",
+      "@type": "xsd:string"
+    },
+    "kind": {
+      "@id": "jobspipe:kind",
+      "@type": "xsd:string"
+    },
+    "category": {
+      "@id": "jobspipe:category",
+      "@type": "xsd:string"
+    },
+    "parent_category": {
+      "@id": "jobspipe:parent_category",
+      "@type": "xsd:string"
+    },
+    "strength": {
+      "@id": "jobspipe:strength",
+      "@type": "xsd:string"
+    },
+    "sections": {
+      "@id": "jobspipe:sections",
+      "@container": "@list"
+    },
+    "in_title": {
+      "@id": "jobspipe:in_title",
+      "@type": "xsd:boolean"
+    },
+    "terms": {
+      "@id": "jobspipe:terms",
+      "@container": "@list"
+    },
+    "terms_cs": {
+      "@id": "jobspipe:terms_cs",
+      "@container": "@list"
+    },
+    "JobSource": "jobspipe:JobSource",
+    "provider": {
+      "@id": "jobspipe:provider",
+      "@type": "xsd:string"
+    },
+    "seen_at": {
+      "@id": "jobspipe:seen_at",
+      "@type": "xsd:dateTime"
+    },
+    "Job": "jobspipe:Job",
+    "id": {
+      "@id": "jobspipe:id",
+      "@type": "xsd:string"
+    },
+    "job_title": {
+      "@id": "jobspipe:job_title",
+      "@type": "xsd:string"
+    },
+    "normalized_title": {
+      "@id": "jobspipe:normalized_title",
+      "@type": "xsd:string"
+    },
+    "company": {
+      "@id": "jobspipe:company",
+      "@type": "xsd:string"
+    },
+    "company_domain": {
+      "@id": "jobspipe:company_domain",
+      "@type": "xsd:string"
+    },
+    "company_object": {
+      "@id": "jobspipe:company_object"
+    },
+    "employer_type": {
+      "@id": "jobspipe:employer_type",
+      "@type": "xsd:string"
+    },
+    "short_location": {
+      "@id": "jobspipe:short_location",
+      "@type": "xsd:string"
+    },
+    "long_location": {
+      "@id": "jobspipe:long_location",
+      "@type": "xsd:string"
+    },
+    "country_code": {
+      "@id": "jobspipe:country_code",
+      "@type": "xsd:string"
+    },
+    "country_codes": {
+      "@id": "jobspipe:country_codes",
+      "@container": "@list"
+    },
+    "continents": {
+      "@id": "jobspipe:continents",
+      "@container": "@list"
+    },
+    "latitude": {
+      "@id": "jobspipe:latitude",
+      "@type": "xsd:decimal"
+    },
+    "longitude": {
+      "@id": "jobspipe:longitude",
+      "@type": "xsd:decimal"
+    },
+    "coordinates_source": {
+      "@id": "jobspipe:coordinates_source",
+      "@type": "xsd:string"
+    },
+    "postal_code": {
+      "@id": "jobspipe:postal_code",
+      "@type": "xsd:string"
+    },
+    "state_code": {
+      "@id": "jobspipe:state_code",
+      "@type": "xsd:string"
+    },
+    "cities": {
+      "@id": "jobspipe:cities",
+      "@container": "@list"
+    },
+    "hybrid": {
+      "@id": "jobspipe:hybrid",
+      "@type": "xsd:boolean"
+    },
+    "employment_statuses": {
+      "@id": "jobspipe:employment_statuses",
+      "@container": "@list"
+    },
+    "date_posted": {
+      "@id": "jobspipe:date_posted",
+      "@type": "xsd:string"
+    },
+    "discovered_at": {
+      "@id": "jobspipe:discovered_at",
+      "@type": "xsd:dateTime"
+    },
+    "closed_at": {
+      "@id": "jobspipe:closed_at",
+      "@type": "xsd:string"
+    },
+    "closed_reason": {
+      "@id": "jobspipe:closed_reason",
+      "@type": "xsd:string"
+    },
+    "has_blurred_data": {
+      "@id": "jobspipe:has_blurred_data",
+      "@type": "xsd:boolean"
+    },
+    "source_url": {
+      "@id": "jobspipe:source_url",
+      "@type": "xsd:string"
+    },
+    "final_url": {
+      "@id": "jobspipe:final_url",
+      "@type": "xsd:string"
+    },
+    "salary_string": {
+      "@id": "jobspipe:salary_string",
+      "@type": "xsd:string"
+    },
+    "salary_currency": {
+      "@id": "jobspipe:salary_currency",
+      "@type": "xsd:string"
+    },
+    "min_annual_salary": {
+      "@id": "jobspipe:min_annual_salary",
+      "@type": "xsd:integer"
+    },
+    "max_annual_salary": {
+      "@id": "jobspipe:max_annual_salary",
+      "@type": "xsd:integer"
+    },
+    "min_annual_salary_usd": {
+      "@id": "jobspipe:min_annual_salary_usd",
+      "@type": "xsd:integer"
+    },
+    "max_annual_salary_usd": {
+      "@id": "jobspipe:max_annual_salary_usd",
+      "@type": "xsd:integer"
+    },
+    "avg_annual_salary_usd": {
+      "@id": "jobspipe:avg_annual_salary_usd",
+      "@type": "xsd:integer"
+    },
+    "keyword_slugs": {
+      "@id": "jobspipe:keyword_slugs",
+      "@container": "@list"
+    },
+    "technology_slugs": {
+      "@id": "jobspipe:technology_slugs",
+      "@container": "@list"
+    },
+    "technologies": {
+      "@id": "jobspipe:technologies",
+      "@container": "@list"
+    },
+    "isic_division": {
+      "@id": "jobspipe:isic_division",
+      "@type": "xsd:string"
+    },
+    "isic_division_label": {
+      "@id": "jobspipe:isic_division_label",
+      "@type": "xsd:string"
+    },
+    "easy_apply": {
+      "@id": "jobspipe:easy_apply",
+      "@type": "xsd:boolean"
+    },
+    "hiring_team": {
+      "@id": "jobspipe:hiring_team",
+      "@container": "@list"
+    },
+    "reposted": {
+      "@id": "jobspipe:reposted",
+      "@type": "xsd:boolean"
+    },
+    "date_reposted": {
+      "@id": "jobspipe:date_reposted",
+      "@type": "xsd:string"
+    },
+    "matching_phrases": {
+      "@id": "jobspipe:matching_phrases",
+      "@container": "@list"
+    },
+    "matching_words": {
+      "@id": "jobspipe:matching_words",
+      "@container": "@list"
+    },
+    "work_arrangement": {
+      "@id": "jobspipe:work_arrangement",
+      "@type": "xsd:string"
+    },
+    "is_manager": {
+      "@id": "jobspipe:is_manager",
+      "@type": "xsd:boolean"
+    },
+    "job_function": {
+      "@id": "jobspipe:job_function",
+      "@type": "xsd:string"
+    },
+    "last_seen_at": {
+      "@id": "jobspipe:last_seen_at",
+      "@type": "xsd:string"
+    },
+    "verified_at": {
+      "@id": "jobspipe:verified_at",
+      "@type": "xsd:string"
+    },
+    "sources": {
+      "@id": "jobspipe:sources",
+      "@container": "@list"
+    },
+    "work_arrangement_source": {
+      "@id": "jobspipe:work_arrangement_source",
+      "@type": "xsd:string"
+    },
+    "visa_sponsorship": {
+      "@id": "jobspipe:visa_sponsorship",
+      "@type": "xsd:string"
+    },
+    "benefits": {
+      "@id": "jobspipe:benefits",
+      "@container": "@list"
+    },
+    "salary_source": {
+      "@id": "jobspipe:salary_source",
+      "@type": "xsd:string"
+    },
+    "salary_type": {
+      "@id": "jobspipe:salary_type",
+      "@type": "xsd:string"
+    },
+    "estimated_min_annual_salary_usd": {
+      "@id": "jobspipe:estimated_min_annual_salary_usd",
+      "@type": "xsd:decimal"
+    },
+    "estimated_avg_annual_salary_usd": {
+      "@id": "jobspipe:estimated_avg_annual_salary_usd",
+      "@type": "xsd:decimal"
+    },
+    "estimated_max_annual_salary_usd": {
+      "@id": "jobspipe:estimated_max_annual_salary_usd",
+      "@type": "xsd:decimal"
+    },
+    "expires_at": {
+      "@id": "jobspipe:expires_at",
+      "@type": "xsd:string"
+    },
+    "applicant_count": {
+      "@id": "jobspipe:applicant_count",
+      "@type": "xsd:integer"
+    },
+    "recruiter_emails": {
+      "@id": "jobspipe:recruiter_emails",
+      "@container": "@list"
+    },
+    "listing_type": {
+      "@id": "jobspipe:listing_type",
+      "@type": "xsd:string"
+    },
+    "metro_code": {
+      "@id": "jobspipe:metro_code",
+      "@type": "xsd:string"
+    },
+    "metro_label": {
+      "@id": "jobspipe:metro_label",
+      "@type": "xsd:string"
+    },
+    "normalized_city": {
+      "@id": "jobspipe:normalized_city",
+      "@type": "xsd:string"
+    },
+    "seniority_source": {
+      "@id": "jobspipe:seniority_source",
+      "@type": "xsd:string"
+    },
+    "esco_skills": {
+      "@id": "jobspipe:esco_skills",
+      "@container": "@list"
+    },
+    "ghost_score": {
+      "@id": "jobspipe:ghost_score",
+      "@type": "xsd:decimal"
+    },
+    "language": {
+      "@id": "jobspipe:language",
+      "@type": "xsd:string"
+    },
+    "JobSearchResponse": "jobspipe:JobSearchResponse",
+    "metadata": {
+      "@id": "jobspipe:metadata"
+    },
+    "data": {
+      "@id": "jobspipe:data",
+      "@container": "@list"
+    },
+    "AgenticSearchRequest": "jobspipe:AgenticSearchRequest",
+    "query": {
+      "@id": "jobspipe:query",
+      "@type": "xsd:string"
+    },
+    "filters": {
+      "@id": "jobspipe:filters"
+    },
+    "AgenticSearchResponse": "jobspipe:AgenticSearchResponse",
+    "StackScanRequest": "jobspipe:StackScanRequest",
+    "mode": {
+      "@id": "jobspipe:mode",
+      "@type": "xsd:string"
+    },
+    "DetectedTech": "jobspipe:DetectedTech",
+    "categories": {
+      "@id": "jobspipe:categories",
+      "@container": "@list"
+    },
+    "version": {
+      "@id": "jobspipe:version",
+      "@type": "xsd:string"
+    },
+    "signals": {
+      "@id": "jobspipe:signals",
+      "@container": "@list"
+    },
+    "website": {
+      "@id": "jobspipe:website",
+      "@type": "xsd:string"
+    },
+    "icon": {
+      "@id": "jobspipe:icon",
+      "@type": "xsd:string"
+    },
+    "pricing": {
+      "@id": "jobspipe:pricing",
+      "@container": "@list"
+    },
+    "saas": {
+      "@id": "jobspipe:saas",
+      "@type": "xsd:boolean"
+    },
+    "oss": {
+      "@id": "jobspipe:oss",
+      "@type": "xsd:boolean"
+    },
+    "StackScanResponse": "jobspipe:StackScanResponse",
+    "scanned_at": {
+      "@id": "jobspipe:scanned_at",
+      "@type": "xsd:dateTime"
+    },
+    "http_status": {
+      "@id": "jobspipe:http_status",
+      "@type": "xsd:integer"
+    },
+    "render_path": {
+      "@id": "jobspipe:render_path",
+      "@type": "xsd:string"
+    },
+    "detected": {
+      "@id": "jobspipe:detected",
+      "@container": "@list"
+    },
+    "Technology": "jobspipe:Technology",
+    "category_slug": {
+      "@id": "jobspipe:category_slug",
+      "@type": "xsd:string"
+    },
+    "TechnologyFound": "jobspipe:TechnologyFound",
+    "technology": {
+      "@id": "jobspipe:technology",
+      "@type": "@id"
+    },
+    "tier": {
+      "@id": "jobspipe:tier",
+      "@type": "xsd:string"
+    },
+    "jobs": {
+      "@id": "jobspipe:jobs",
+      "@type": "xsd:integer"
+    },
+    "jobs_last_7_days": {
+      "@id": "jobspipe:jobs_last_7_days",
+      "@type": "xsd:integer"
+    },
+    "jobs_last_30_days": {
+      "@id": "jobspipe:jobs_last_30_days",
+      "@type": "xsd:integer"
+    },
+    "jobs_last_180_days": {
+      "@id": "jobspipe:jobs_last_180_days",
+      "@type": "xsd:integer"
+    },
+    "first_date_found": {
+      "@id": "jobspipe:first_date_found",
+      "@type": "xsd:date"
+    },
+    "last_date_found": {
+      "@id": "jobspipe:last_date_found",
+      "@type": "xsd:date"
+    },
+    "rank_within_category": {
+      "@id": "jobspipe:rank_within_category",
+      "@type": "xsd:integer"
+    },
+    "relative_occurrence_within_category": {
+      "@id": "jobspipe:relative_occurrence_within_category",
+      "@type": "xsd:decimal"
+    },
+    "required_jobs": {
+      "@id": "jobspipe:required_jobs",
+      "@type": "xsd:integer"
+    },
+    "preferred_jobs": {
+      "@id": "jobspipe:preferred_jobs",
+      "@type": "xsd:integer"
+    },
+    "mentioned_jobs": {
+      "@id": "jobspipe:mentioned_jobs",
+      "@type": "xsd:integer"
+    },
+    "recency": {
+      "@id": "jobspipe:recency",
+      "@type": "xsd:string"
+    },
+    "TechCompany": "jobspipe:TechCompany",
+    "employee_count_range": {
+      "@id": "jobspipe:employee_count_range",
+      "@type": "xsd:string"
+    },
+    "founded_year": {
+      "@id": "jobspipe:founded_year",
+      "@type": "xsd:integer"
+    },
+    "annual_revenue_usd": {
+      "@id": "jobspipe:annual_revenue_usd",
+      "@type": "xsd:decimal"
+    },
+    "industry": {
+      "@id": "jobspipe:industry",
+      "@type": "xsd:string"
+    },
+    "num_jobs": {
+      "@id": "jobspipe:num_jobs",
+      "@type": "xsd:integer"
+    },
+    "num_jobs_found": {
+      "@id": "jobspipe:num_jobs_found",
+      "@type": "xsd:integer"
+    },
+    "num_jobs_last_30_days": {
+      "@id": "jobspipe:num_jobs_last_30_days",
+      "@type": "xsd:integer"
+    },
+    "num_technologies": {
+      "@id": "jobspipe:num_technologies",
+      "@type": "xsd:integer"
+    },
+    "technology_names": {
+      "@id": "jobspipe:technology_names",
+      "@container": "@list"
+    },
+    "technologies_found": {
+      "@id": "jobspipe:technologies_found",
+      "@container": "@list"
+    },
+    "CompanySearchRequest": "jobspipe:CompanySearchRequest",
+    "company_technology_slug_and": {
+      "@id": "jobspipe:company_technology_slug_and",
+      "@container": "@list"
+    },
+    "company_technology_slug_not": {
+      "@id": "jobspipe:company_technology_slug_not",
+      "@container": "@list"
+    },
+    "expand_technology_slugs": {
+      "@id": "jobspipe:expand_technology_slugs",
+      "@container": "@list"
+    },
+    "min_num_jobs_found": {
+      "@id": "jobspipe:min_num_jobs_found",
+      "@type": "xsd:integer"
+    },
+    "company_country_code_or": {
+      "@id": "jobspipe:company_country_code_or",
+      "@container": "@list"
+    },
+    "company_domain_or": {
+      "@id": "jobspipe:company_domain_or",
+      "@container": "@list"
+    },
+    "tier_min": {
+      "@id": "jobspipe:tier_min",
+      "@type": "xsd:string"
+    },
+    "job_filters": {
+      "@id": "jobspipe:job_filters"
+    },
+    "CompanySearchResponse": "jobspipe:CompanySearchResponse",
+    "CompanyTechnologiesResponse": "jobspipe:CompanyTechnologiesResponse",
+    "as_of": {
+      "@id": "jobspipe:as_of",
+      "@type": "xsd:string"
+    },
+    "TechnologyListResponse": "jobspipe:TechnologyListResponse",
+    "TechnologyCompany": "jobspipe:TechnologyCompany",
+    "TechnologyDetailResponse": "jobspipe:TechnologyDetailResponse",
+    "companies": {
+      "@id": "jobspipe:companies",
+      "@type": "xsd:integer"
+    },
+    "companies_by_tier": {
+      "@id": "jobspipe:companies_by_tier"
+    },
+    "top_countries": {
+      "@id": "jobspipe:top_countries",
+      "@container": "@list"
+    },
+    "recently_adopted": {
+      "@id": "jobspipe:recently_adopted",
+      "@container": "@list"
+    },
+    "monthly_adoption": {
+      "@id": "jobspipe:monthly_adoption",
+      "@container": "@list"
+    },
+    "BillingCheckoutError": "jobspipe:BillingCheckoutError",
+    "error": {
+      "@id": "jobspipe:error",
+      "@type": "xsd:string"
+    },
+    "message": {
+      "@id": "jobspipe:message",
+      "@type": "xsd:string"
+    },
+    "contact_url": {
+      "@id": "jobspipe:contact_url",
+      "@type": "@id"
+    },
+    "billing_url": {
+      "@id": "jobspipe:billing_url",
+      "@type": "@id"
+    },
+    "ErrorResponse": "jobspipe:ErrorResponse",
+    "RateLimitErrorResponse": "jobspipe:RateLimitErrorResponse"
+  },
+  "@type": "schema:Dataset",
+  "schema:name": "JobsPipe API JSON-LD context",
+  "schema:description": "A JSON-LD @context for the objects JobsPipe's own API contract declares: one class per component schema, one property per declared field, typed from the contract. Derived by script (derive-json-ld.py, 2026-10-02) from openapi/jobspipe-openapi.json.",
+  "dcterms:created": "2026-10-02",
+  "dcterms:source": [
+    "openapi/jobspipe-openapi.json"
+  ]
+}

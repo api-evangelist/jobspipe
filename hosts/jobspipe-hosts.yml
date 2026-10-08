@@ -1,0 +1,96 @@
+generated: '2026-10-02'
+method: derived
+source: the pre-flight dossier, apis.yml pointers, spec servers, well-known, vendors -- nothing fetched here
+generator: derive-hosts.py
+summary:
+  hosts: 5
+  own: 4
+  other_domain: 0
+  platform: 1
+  roles:
+  - docs
+  - source
+  - status
+  - website
+hosts:
+- host: api.jobspipe.dev
+  found_by:
+  - pointer
+  - apis[]
+  - probed
+  - site-links
+  - contract-discovery
+  - well-known
+  types:
+  - APIReference
+  serves:
+  - api
+  registrable_domain: jobspipe.dev
+  role: docs
+  relation: own
+- host: docs.jobspipe.dev
+  found_by:
+  - pointer
+  - apis[]
+  - probed
+  - site-links
+  - docs-index
+  - contract-discovery
+  - well-known
+  types:
+  - Documentation
+  serves:
+  - docs
+  registrable_domain: jobspipe.dev
+  role: docs
+  relation: own
+- host: github.com
+  found_by:
+  - pointer
+  types:
+  - GitHubOrganization
+  serves: []
+  registrable_domain: github.com
+  role: source
+  relation: platform
+- host: jobspipe.dev
+  found_by:
+  - pointer
+  - probed
+  - docs-index
+  - spec-found
+  - contract-discovery
+  - well-known
+  types:
+  - Compliance
+  - Security
+  - Sandbox
+  - DeveloperPortal
+  - ChangeLog
+  - Website
+  - GettingStarted
+  - Support
+  - Blog
+  - Pricing
+  - SignUp
+  - TermsOfService
+  - PrivacyPolicy
+  serves:
+  - docs
+  - spec
+  registrable_domain: jobspipe.dev
+  role: website
+  relation: own
+- host: status.jobspipe.dev
+  found_by:
+  - pointer
+  - probed
+  - site-links
+  - contract-discovery
+  - well-known
+  types:
+  - StatusPage
+  serves: []
+  registrable_domain: jobspipe.dev
+  role: status
+  relation: own

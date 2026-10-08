@@ -1,0 +1,52 @@
+generated: '2026-10-02'
+method: searched
+source: https://docs.jobspipe.dev/usage/plans
+name: JobsPipe API Plans
+plans:
+  - name: Free
+    price_text: $0
+    price: 0
+    currency: USD
+    billing_period: month
+    credits_per_month: 1000
+    rate_limit: "2 / second"
+    notes: "Free starts with 1,000 credits, once, and is never refilled."
+  - name: Builder
+    price_text: $49 / month
+    price: 49
+    currency: USD
+    billing_period: month
+    credits_per_month: 25000
+    rate_limit: "10 / second"
+    notes: ""
+  - name: Growth
+    price_text: $149 / month
+    price: 149
+    currency: USD
+    billing_period: month
+    credits_per_month: 100000
+    rate_limit: "10 / second"
+    notes: ""
+  - name: Scale
+    price_text: $348 / month
+    price: 348
+    currency: USD
+    billing_period: month
+    credits_per_month: 300000
+    rate_limit: "50 / second"
+    notes: ""
+  - name: Business
+    price_text: $525 / month
+    price: 525
+    currency: USD
+    billing_period: month
+    credits_per_month: 500000
+    rate_limit: "50 / second"
+    notes: ""
+  - name: Enterprise
+    price_text: "Contact sales"
+    currency: null
+    billing_period: null
+    credits_per_month: null
+    rate_limit: null
+    notes: "Enterprise plan pricing not published."

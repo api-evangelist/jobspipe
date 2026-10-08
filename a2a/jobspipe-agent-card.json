@@ -1,0 +1,89 @@
+{
+  "protocolVersion": "0.3.0",
+  "name": "JobsPipe",
+  "description": "Universal Jobs API agent. Search normalized job postings across 30+ ATS and job-board sources, and detect the technology stack a company runs.",
+  "url": "https://mcp.jobspipe.dev/mcp",
+  "preferredTransport": "JSONRPC",
+  "supportedInterfaces": [
+    {
+      "url": "https://mcp.jobspipe.dev/mcp",
+      "transport": "JSONRPC"
+    }
+  ],
+  "provider": {
+    "organization": "JobsPipe",
+    "url": "https://jobspipe.dev"
+  },
+  "version": "1.0.0",
+  "documentationUrl": "https://docs.jobspipe.dev",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false,
+    "intentEndpoints": [
+      "https://api.jobspipe.dev/v1/jobs/search",
+      "https://api.jobspipe.dev/v1/stack/scan"
+    ],
+    "sessions": {
+      "endpoint": "https://mcp.jobspipe.dev/mcp"
+    },
+    "auditLog": {
+      "header": "X-Request-Id"
+    },
+    "sandbox": {
+      "baseUrl": "https://jobspipe.dev/sandbox"
+    },
+    "toolSchemas": "/.well-known/skills/index.json"
+  },
+  "securitySchemes": {
+    "apiKey": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "JobsPipe API key as a Bearer token, prefixed jp_live_. Issued at https://jobspipe.dev/signup — there is no anonymous or OAuth credential issuance."
+    }
+  },
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "defaultInputModes": [
+    "application/json",
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "application/json",
+    "text/plain"
+  ],
+  "skills": [
+    {
+      "id": "search-job-postings",
+      "name": "Search job postings",
+      "description": "Query normalized job postings with filters for sort order, pagination, budget, and client attributes.",
+      "tags": [
+        "jobs",
+        "search",
+        "ats",
+        "hiring"
+      ],
+      "examples": [
+        "Find the 50 most recent job postings",
+        "List postings sorted by budget descending"
+      ]
+    },
+    {
+      "id": "scan-company-tech-stack",
+      "name": "Scan company tech stack",
+      "description": "Detect the technologies a company runs by scanning its website domain.",
+      "tags": [
+        "technographics",
+        "tech-stack",
+        "enrichment"
+      ],
+      "examples": [
+        "Scan stripe.com for its technology stack"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+generated: '2026-10-02'
+method: probed
+source:
+  - https://jobspipe.dev/privacy.md
+signals:
+  data_subject_request:
+    - evidence:
+        - source: https://jobspipe.dev/privacy.md
+          http_status: 200
+          fetched: true
+          quote: "Depending on where you live, you may have the right to access, correct, delete, or export your personal data, and to object to certain processing. You can delete your account yourself in the dashboard under Settings, Profile. To exercise these rights, email privacy@jobspipe.dev. We respond within 30 days."
+      section: "Your rights"
+      note: Provides data subject rights and process for exercising them.
+  subprocessors:
+    - evidence:
+        - source: https://jobspipe.dev/privacy.md
+          http_status: 200
+          fetched: true
+          quote: "We use a small set of vendors to run the service, for hosting, payments, email, logging, analytics, network security and AI models. The full, current list with roles and regions is in the Data Processing Addendum."
+      section: "Sub-processors"
+      note: Lists use of sub‑processors and reference to DPA.
+  data_retention:
+    - evidence:
+        - source: https://jobspipe.dev/privacy.md
+          http_status: 200
+          fetched: true
+          quote: "Account data is retained for the life of the account plus 90 days. Your per-account request history is kept for 90 days so you can review it in the dashboard; other API and diagnostic logs are kept for up to 30 days for debugging and abuse prevention."
+      section: "Retention"
+      note: Describes retention periods for account and logs.
+  incident_notification:
+    - evidence:
+        - source: https://jobspipe.dev/privacy.md
+          http_status: 200
+          fetched: true
+          quote: "Report security issues to security@jobspipe.dev."
+      section: "Security"
+      note: Provides contact for security incidents.
+  ai_transparency:
+    - evidence:
+        - source: https://jobspipe.dev/privacy.md
+          http_status: 200
+          fetched: true
+          quote: "Search requests, including natural-language requests, and your conversations with our support chat and the dashboard assistant are processed by AI model providers in the USA to answer them."
+      section: "What we collect"
+      note: Discloses AI processing of user data.

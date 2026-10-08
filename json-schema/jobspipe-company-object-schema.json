@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/jobspipe/main/json-schema/jobspipe-company-object-schema.json",
+  "title": "CompanyObject",
+  "description": "Structured details about the hiring company. Every field is independently optional.",
+  "x-generated": "2026-10-02",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/jobspipe-openapi.json#/components/schemas/CompanyObject",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "domain": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Bare website host, e.g. stripe.com."
+    },
+    "url": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Company website."
+    },
+    "logo": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "employee_count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Headcount from the company's public profile or, failing that, from the employer's business record, which may be an estimate."
+    },
+    "employee_count_min": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "Lower bound on headcount, when only a size band is known (e.g. 10000 for a \"10,000+\" company). Present for many companies that have no exact count."
+    },
+    "linkedin_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "location": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Company headquarters.",
+      "properties": {
+        "street": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "city": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "region": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "postal_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "founded": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Year the company was founded, where known."
+    },
+    "intelligence": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Revenue, legal identity and entity type of the employer, resolved for the posting's company in the posting's country. Null when no record exists or the record holds no finding, and always null on GET /v1/companies/{key}, which has no posting country to resolve against. Every field inside is independently null when it is not known.",
+      "properties": {
+        "revenue_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Most recent known annual revenue, converted to US dollars. Null when no figure is known."
+        },
+        "revenue_year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Fiscal year the revenue figure refers to."
+        },
+        "revenue_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Short identifier of where the revenue figure came from, such as a business register, a securities filing or a company directory."
+        },
+        "revenue_confidence": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "filed",
+            "reported",
+            "band",
+            "derived",
+            "extracted",
+            null
+          ],
+          "description": "How the revenue figure was obtained, strongest first: filed = taken from the company's statutory accounts; reported = stated by the company itself; band = only an estimated range is known; revenue_usd is a representative figure within it; derived = estimated from funding or valuation; extracted = read from public text about the company."
+        },
+        "entity_kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "What kind of organisation the employer is: company, branch, public_sector or staffing_agency."
+        },
+        "founded_year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Year the legal entity was founded or registered."
+        },
+        "headcount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Employee count as filed, registered or listed in a company directory. Can differ from employee_count, which comes from the company's public profile."
+        },
+        "industry": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Industry as recorded for the legal entity or, where no record exists, the industry a company directory lists."
+        },
+        "hq_region": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Region or state of the employer's headquarters, as written by the source (for example California), when known."
+        },
+        "hq_city": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "City of the employer's headquarters, when known."
+        },
+        "revenue_low_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Lower bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise."
+        },
+        "revenue_high_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Upper bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise."
+        },
+        "headcount_low": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Lower bound of the headcount: the range behind the figure when the source gave one; null otherwise."
+        },
+        "headcount_high": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Upper bound of the headcount: the range behind the figure when the source gave one; null otherwise."
+        },
+        "lei": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Legal Entity Identifier (ISO 17442), 20 characters."
+        }
+      }
+    }
+  }
+}

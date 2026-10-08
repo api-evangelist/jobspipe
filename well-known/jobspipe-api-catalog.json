@@ -1,0 +1,94 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://jobspipe.dev/",
+      "item": [
+        {
+          "href": "https://api.jobspipe.dev/v1/jobs/search",
+          "title": "Jobs search API"
+        },
+        {
+          "href": "https://api.jobspipe.dev/v1/stack/scan",
+          "title": "Tech-stack scan API"
+        },
+        {
+          "href": "https://jobspipe.dev/openapi.json",
+          "type": "application/json",
+          "title": "JobsPipe OpenAPI specification"
+        }
+      ],
+      "service-desc": [
+        {
+          "href": "https://jobspipe.dev/openapi.json",
+          "type": "application/json",
+          "title": "JobsPipe OpenAPI 3.1 specification"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://docs.jobspipe.dev",
+          "type": "text/html",
+          "title": "JobsPipe API documentation"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://jobspipe.dev/api/health",
+          "type": "application/json",
+          "title": "JobsPipe API health"
+        }
+      ],
+      "related": [
+        {
+          "href": "https://jobspipe.dev/llms-full.txt",
+          "type": "text/plain",
+          "title": "Machine-readable API and content index"
+        },
+        {
+          "href": "https://jobspipe.dev/.well-known/mcp/server-card.json",
+          "type": "application/json",
+          "title": "JobsPipe MCP server card"
+        },
+        {
+          "href": "https://jobspipe.dev/.well-known/agent-skills/index.json",
+          "type": "application/json",
+          "title": "JobsPipe agent skills index"
+        }
+      ]
+    },
+    {
+      "anchor": "https://api.jobspipe.dev/v1/jobs/search",
+      "service-desc": [
+        {
+          "href": "https://jobspipe.dev/openapi.json",
+          "type": "application/json",
+          "title": "Jobs endpoint specification"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://docs.jobspipe.dev",
+          "type": "text/html",
+          "title": "Jobs endpoint documentation"
+        }
+      ]
+    },
+    {
+      "anchor": "https://api.jobspipe.dev/v1/stack/scan",
+      "service-desc": [
+        {
+          "href": "https://jobspipe.dev/openapi.json",
+          "type": "application/json",
+          "title": "Tech-stack scan specification"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://docs.jobspipe.dev",
+          "type": "text/html",
+          "title": "Tech-stack scan documentation"
+        }
+      ]
+    }
+  ]
+}

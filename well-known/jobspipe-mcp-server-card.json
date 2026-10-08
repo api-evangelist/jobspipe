@@ -1,0 +1,75 @@
+{
+  "name": "jobspipe",
+  "kind": "product",
+  "title": "JobsPipe",
+  "description": "The JobsPipe MCP server lets AI agents search live, normalized job postings from 30+ sources, list job sources and pricing plans, and search Upwork postings through tool-style actions. This public server needs no key; live results come from the authenticated server or the REST API.",
+  "icon": "https://jobspipe.dev/icon.png",
+  "websiteUrl": "https://jobspipe.dev",
+  "documentationUrl": "https://docs.jobspipe.dev",
+  "version": "1.0.0",
+  "url": "https://jobspipe.dev/mcp",
+  "serverUrl": "https://jobspipe.dev/mcp",
+  "serverInfo": {
+    "name": "jobspipe",
+    "version": "1.0.0"
+  },
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://jobspipe.dev/mcp"
+  },
+  "authentication": {
+    "type": "none",
+    "description": "No authentication. search_jobs returns real live postings, capped at 3 rows a call and limited to the common filters; every response carries the total match count and the authenticated REST call that returns the full set."
+  },
+  "capabilities": [
+    "tools",
+    "resources"
+  ],
+  "tools": [
+    {
+      "name": "search_jobs",
+      "description": "Search live, normalized job postings across 30+ sources by title, skill/tech, country, remote, seniority, employment type and recency. Returns real matching postings -- title, company, domain, location, salary range, tech stack and apply URL -- capped at 3 rows per call on this no-key server, with the total match count and the REST call that returns the rest."
+    },
+    {
+      "name": "list_job_sources",
+      "description": "List the ATS and job-board sources JobsPipe normalizes into a single JSON schema, with coverage and freshness notes."
+    },
+    {
+      "name": "list_pricing_plans",
+      "description": "List JobsPipe pricing plans with monthly price in USD (and the yearly price, two months free), monthly job quota and included features."
+    }
+  ],
+  "authenticated": {
+    "description": "Same tools backed by live data. Connect with OAuth, or send a JobsPipe API key (Authorization: Bearer jp_live_<key>; an x-api-key header also works). Create a key in the dashboard (Settings -> API Keys).",
+    "serverUrl": "https://mcp.jobspipe.dev/mcp",
+    "transport": {
+      "type": "streamable-http",
+      "endpoint": "https://mcp.jobspipe.dev/mcp"
+    },
+    "authentication": {
+      "type": "oauth2",
+      "resource_metadata": "https://mcp.jobspipe.dev/.well-known/oauth-protected-resource",
+      "alternatives": [
+        {
+          "type": "http",
+          "scheme": "bearer",
+          "prefix": "jp_live_"
+        }
+      ]
+    },
+    "tools": [
+      {
+        "name": "search_jobs",
+        "description": "Search live, normalized job postings across 30+ sources by title, skill/tech, country, remote, seniority, employment type and recency. Returns real matching postings -- title, company, domain, location, salary range, tech stack and apply URL -- capped at 3 rows per call on this no-key server, with the total match count and the REST call that returns the rest."
+      },
+      {
+        "name": "list_job_sources",
+        "description": "List the ATS and job-board sources JobsPipe normalizes into a single JSON schema, with coverage and freshness notes."
+      },
+      {
+        "name": "list_pricing_plans",
+        "description": "List JobsPipe pricing plans with monthly price in USD (and the yearly price, two months free), monthly job quota and included features."
+      }
+    ]
+  }
+}

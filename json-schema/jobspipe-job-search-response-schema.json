@@ -1,0 +1,1004 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/api-evangelist/jobspipe/main/json-schema/jobspipe-job-search-response-schema.json",
+  "title": "JobSearchResponse",
+  "x-generated": "2026-10-02",
+  "x-method": "derived",
+  "x-generator": "derive-json-schema.py",
+  "x-source": "openapi/jobspipe-openapi.json#/components/schemas/JobSearchResponse",
+  "type": "object",
+  "required": [
+    "metadata",
+    "data"
+  ],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Counts, the pagination cursor, and what the call cost.",
+      "properties": {
+        "total_results": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "truncated_results": {
+          "type": "integer"
+        },
+        "total_companies": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Always null: JobsPipe does not count distinct companies. Kept for TheirStack compatibility."
+        },
+        "truncated_companies": {
+          "type": "integer",
+          "description": "Always 0, under the same rules as total_companies."
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "credits_charged": {
+          "type": "integer",
+          "description": "Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC), plus technologies_credits_charged when include_technologies was set. Absent for callers that are not metered."
+        },
+        "jobs_already_paid": {
+          "type": "integer",
+          "description": "Jobs in data that cost nothing because the account already paid for them this calendar month. Without include_technologies, credits_charged plus jobs_already_paid equals the number of jobs returned."
+        },
+        "technologies_credits_charged": {
+          "type": "integer",
+          "description": "Present only with include_technologies. The part of credits_charged spent on technologies: 1 per returned job that names at least one technology and whose technologies the account had not already paid for this calendar month."
+        },
+        "technologies_already_paid": {
+          "type": "integer",
+          "description": "Present only with include_technologies. Jobs whose technologies cost nothing because the account already paid for them this calendar month."
+        },
+        "credits_remaining": {
+          "type": "integer",
+          "description": "Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered."
+        },
+        "credits_allowance": {
+          "type": "integer",
+          "description": "What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered."
+        },
+        "field_coverage": {
+          "type": "object",
+          "description": "For each filter the request used that reads a partially filled field: the share (0-100) of active postings from the last 30 days carrying it, overall and per source.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string"
+              },
+              "filled_pct": {
+                "type": "number"
+              },
+              "by_source": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Job"
+      },
+      "description": "The page of matching job postings."
+    }
+  },
+  "$defs": {
+    "CompanyObject": {
+      "type": "object",
+      "description": "Structured details about the hiring company. Every field is independently optional.",
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Bare website host, e.g. stripe.com."
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Company website."
+        },
+        "logo": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "employee_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Headcount from the company's public profile or, failing that, from the employer's business record, which may be an estimate."
+        },
+        "employee_count_min": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Lower bound on headcount, when only a size band is known (e.g. 10000 for a \"10,000+\" company). Present for many companies that have no exact count."
+        },
+        "linkedin_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Company headquarters.",
+          "properties": {
+            "street": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "city": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "region": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "postal_code": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "country": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "founded": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Year the company was founded, where known."
+        },
+        "intelligence": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "Revenue, legal identity and entity type of the employer, resolved for the posting's company in the posting's country. Null when no record exists or the record holds no finding, and always null on GET /v1/companies/{key}, which has no posting country to resolve against. Every field inside is independently null when it is not known.",
+          "properties": {
+            "revenue_usd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Most recent known annual revenue, converted to US dollars. Null when no figure is known."
+            },
+            "revenue_year": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Fiscal year the revenue figure refers to."
+            },
+            "revenue_source": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Short identifier of where the revenue figure came from, such as a business register, a securities filing or a company directory."
+            },
+            "revenue_confidence": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "filed",
+                "reported",
+                "band",
+                "derived",
+                "extracted",
+                null
+              ],
+              "description": "How the revenue figure was obtained, strongest first: filed = taken from the company's statutory accounts; reported = stated by the company itself; band = only an estimated range is known; revenue_usd is a representative figure within it; derived = estimated from funding or valuation; extracted = read from public text about the company."
+            },
+            "entity_kind": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "What kind of organisation the employer is: company, branch, public_sector or staffing_agency."
+            },
+            "founded_year": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Year the legal entity was founded or registered."
+            },
+            "headcount": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Employee count as filed, registered or listed in a company directory. Can differ from employee_count, which comes from the company's public profile."
+            },
+            "industry": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Industry as recorded for the legal entity or, where no record exists, the industry a company directory lists."
+            },
+            "hq_region": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Region or state of the employer's headquarters, as written by the source (for example California), when known."
+            },
+            "hq_city": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "City of the employer's headquarters, when known."
+            },
+            "revenue_low_usd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Lower bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise."
+            },
+            "revenue_high_usd": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Upper bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise."
+            },
+            "headcount_low": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Lower bound of the headcount: the range behind the figure when the source gave one; null otherwise."
+            },
+            "headcount_high": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "description": "Upper bound of the headcount: the range behind the figure when the source gave one; null otherwise."
+            },
+            "lei": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Legal Entity Identifier (ISO 17442), 20 characters."
+            }
+          }
+        }
+      }
+    },
+    "Job": {
+      "type": "object",
+      "description": "A normalized job posting.",
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "description": "JobsPipe ID for this posting. Stable for the same posting over time, but not shared across boards: the same role listed on two sources is two postings with two IDs."
+        },
+        "job_title": {
+          "type": "string"
+        },
+        "normalized_title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Canonical form of the title, assigned by the same title classifier that fills occupation_code. Null until the title has been classified."
+        },
+        "company": {
+          "type": "string"
+        },
+        "company_domain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Hiring company's website domain, for CRM and account matching. Resolved from the company name where a source did not supply one."
+        },
+        "company_object": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CompanyObject"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Structured company details, or null when nothing beyond the name is known. Fields are independently optional: coverage depends on which source resolved the company."
+        },
+        "employer_type": {
+          "type": "string",
+          "description": "Who posted the job: \"employer\" (hires for itself), \"agency\" (staffing or recruitment firm posting for a client) or \"broker\" (job board republishing another company's listing). Defaults to \"employer\" where the company has not been classified."
+        },
+        "location": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "short_location": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The same raw location string as location. TheirStack distinguishes a short and a long form; JobsPipe publishes one normalized string in all three."
+        },
+        "long_location": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The same raw location string as location, under the same rules as short_location."
+        },
+        "country_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "country": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Country name for country_code, e.g. United States. Derived from the code, which sources publish far more often than the name."
+        },
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "country as a single-element array, empty when the country is unknown. An array for TheirStack compatibility, where a posting could span several."
+        },
+        "country_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "country_code as a single-element array, empty when the country is unknown. An array for TheirStack compatibility, where a posting could span several."
+        },
+        "continents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Continent for country_code as a single-element array, e.g. [\"Europe\"]. Empty when the country is unknown."
+        },
+        "latitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Latitude of the job's location: the posting's own coordinates when the job board published them. City-centre coordinates are being switched on, and as they are, a posting whose city is known is filled from the centre of that city instead. Read coordinates_source to tell the two apart. Null when there are none."
+        },
+        "longitude": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Longitude of the job's location, under the same rules as latitude."
+        },
+        "coordinates_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "source",
+            "city_centroid",
+            null
+          ],
+          "description": "Where latitude and longitude come from. \"source\": the job board published them for this posting. \"city_centroid\": the centre of the posting's city, not the employer's address, so do not treat it as a precise location. Null when there are no coordinates."
+        },
+        "postal_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Postal code of the job's location, when the source published one. Distinct from company_object.location.postal_code, which is the employer's headquarters."
+        },
+        "state_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Region or state of the job's location, as the source published it (e.g. WA, or a spelled-out region). Not guaranteed to be a two-letter code."
+        },
+        "cities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The job's city as a single-element array, empty when the source published no city."
+        },
+        "remote": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "hybrid": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "True when work_arrangement is hybrid, false when it is remote or onsite, null when the arrangement is unknown. Never false on a guess."
+        },
+        "seniority": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "employment_statuses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The job's employment type as a single-element array: full_time, part_time, contract, temporary or internship. Empty when the posting does not state one. Note the underscored spelling; the employment_type_or filter takes the hyphenated form."
+        },
+        "date_posted": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "discovered_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When JobsPipe first saw the posting. Poll with the discovered_at_gte filter to fetch only what is new since your last run."
+        },
+        "status": {
+          "type": "string",
+          "description": "Lifecycle state: active or closed. Postings no status recheck has reached yet report active."
+        },
+        "closed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "When the posting was closed, as YYYY-MM-DD HH:MM:SS in UTC (a space separator, not the RFC 3339 T). Null while the job is active."
+        },
+        "closed_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Why the posting closed: closed (the source said so), gone (the posting disappeared) or stale (unseen long enough to be treated as closed). Null while the job is active."
+        },
+        "has_blurred_data": {
+          "type": "boolean",
+          "description": "DEPRECATED. Always false: preview mode has been removed and every record is returned unmasked."
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Link to the posting."
+        },
+        "source_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The posting's URL on the first entry of sources, falling back to url. See sources for every board it was seen on."
+        },
+        "final_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Always null: JobsPipe does not resolve apply-link redirects. Kept for TheirStack compatibility."
+        },
+        "salary_string": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The pay as written in the posting, e.g. \"$120K - $150K a year\" or \"$45 an hour\". Present only when the posting states pay; null otherwise. Roughly a quarter of postings disclose pay."
+        },
+        "salary_currency": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ISO 4217 currency code of the salary, e.g. USD, GBP, EUR."
+        },
+        "min_annual_salary": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Minimum pay annualized to a yearly figure in the original currency. Hourly, daily, weekly and monthly rates are scaled to a year; salary_string preserves the original."
+        },
+        "max_annual_salary": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Maximum pay annualized to a yearly figure in the original currency."
+        },
+        "min_annual_salary_usd": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "min_annual_salary converted to USD. Non-USD pay is converted through a pinned ECB exchange-rate snapshot rather than a live rate, so the same posting always converts to the same figure. Null when the posting discloses no pay or no rate exists for its currency."
+        },
+        "max_annual_salary_usd": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "max_annual_salary converted to USD, under the same rules as min_annual_salary_usd."
+        },
+        "avg_annual_salary_usd": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Midpoint of min_annual_salary_usd and max_annual_salary_usd, rounded. When only one of the two is known, that value; null when neither is."
+        },
+        "keyword_slugs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Skill slugs extracted from the title and description against a curated lexicon, e.g. python, kubernetes, financial-modeling."
+        },
+        "technology_slugs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The older, ungraded technology list, kept for compatibility; prefer technologies. Named technologies: languages, frameworks, products, tools and platforms, plus named standards and certifications (e.g. python, snowflake, soc2). Broader skills and concepts such as ci/cd or machine-learning appear only in keyword_slugs."
+        },
+        "technologies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JobTechnology"
+          },
+          "description": "Beta. Technologies the posting names, graded by strength and confidence. Present only when the request set include_technologies, and then on every job; empty until the posting has been extracted or while the feature is off. Costs 1 extra credit per job that names at least one, once per job per calendar month. Sorted required, preferred, mentioned; then confidence high to low; then name."
+        },
+        "occupation_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ISCO-08 unit group of the role (4-digit), e.g. 2512 = Software Developers."
+        },
+        "occupation_label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Human-readable ISCO-08 unit group label."
+        },
+        "isic_division": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "ISIC Rev.4 industry division of the employer (2-digit), e.g. 62 = Computer programming and consultancy."
+        },
+        "isic_division_label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Human-readable ISIC Rev.4 division label."
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Full text of the posting as published by the source."
+        },
+        "easy_apply": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Always null: JobsPipe does not detect one-click apply. Kept for TheirStack compatibility."
+        },
+        "hiring_team": {
+          "type": "array",
+          "items": {},
+          "description": "Always empty: JobsPipe does not publish named recruiter contacts. Kept for TheirStack compatibility."
+        },
+        "reposted": {
+          "type": "boolean",
+          "description": "Always false: JobsPipe does not track reposts. Kept for TheirStack compatibility."
+        },
+        "date_reposted": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Always null, under the same rules as reposted."
+        },
+        "matching_phrases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Always empty. Kept for TheirStack compatibility, where it echoes the searched phrases a posting matched."
+        },
+        "matching_words": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Always empty, under the same rules as matching_phrases."
+        },
+        "work_arrangement": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "How the role is worked: remote, hybrid or onsite. Null when the posting does not say. Finer than remote, which answers false for hybrid and onsite alike; filter on it with work_arrangement_or."
+        },
+        "is_manager": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether the role manages people. seniority maps our lead bucket to \"director\" for TheirStack parity, which files staff and principal individual contributors under a title that reads as people management; this field tells them apart. Null until the title has been classified."
+        },
+        "job_function": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Coarse function of the role, from a closed vocabulary: Engineering, Data & Analytics, Product, Design, IT & Security, Sales, Marketing, Customer Support, Operations, Finance & Accounting, Legal, Human Resources, Healthcare, Education, Science & Research, Manufacturing, Logistics & Supply Chain, Construction & Trades, Hospitality & Food, Retail, Transport, Security & Protective, Administration, Executive. Null until the title has been classified."
+        },
+        "last_seen_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "When the posting was last confirmed still live by a status recheck, as YYYY-MM-DD HH:MM:SS in UTC (a space separator, not the RFC 3339 T). Null until a recheck has reached it."
+        },
+        "verified_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "When JobsPipe last checked the posting, whether or not anything changed, as YYYY-MM-DD HH:MM:SS in UTC (a space separator, not the RFC 3339 T). Null until a recheck has reached it."
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/JobSource"
+          },
+          "description": "Every board the posting was seen on, for deduplicating against your own crawl. Empty when no source entry was stored."
+        },
+        "work_arrangement_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "How work_arrangement was decided: \"source\" (declared by the job board) or \"text\" (parsed from the description)."
+        },
+        "visa_sponsorship": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Visa stance parsed from the posting: \"offers\", \"no\" or \"citizenship_required\". Null where the posting says nothing."
+        },
+        "benefits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Benefit slugs from structured source data. Empty where the source exposes none."
+        },
+        "salary_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Where the salary came from: \"source\" (structured data from the board) or \"description\" (parsed from the posting text)."
+        },
+        "salary_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "\"observed\" when the posting itself carries pay, \"estimated\" when only the corpus benchmark does, null when neither."
+        },
+        "estimated_min_annual_salary_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "25th-percentile annual USD pay for this occupation and location, from public salary statistics. A benchmark, not the employer's posted pay; published beside any observed salary."
+        },
+        "estimated_avg_annual_salary_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Median benchmark. See estimated_min_annual_salary_usd."
+        },
+        "estimated_max_annual_salary_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "75th-percentile benchmark. See estimated_min_annual_salary_usd."
+        },
+        "expires_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Application deadline where the source publishes one. Format: YYYY-MM-DD HH:MM:SS (UTC)."
+        },
+        "applicant_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Number of applicants where the source exposes it (LinkedIn)."
+        },
+        "recruiter_emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Recruiter contact emails parsed from the posting text."
+        },
+        "listing_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "How the posting was listed where the source exposes it."
+        },
+        "metro_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "US CBSA metro code resolved from the job's location. Null outside covered metros."
+        },
+        "metro_label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Metro display name for metro_code, e.g. \"New York-Newark-Jersey City, NY-NJ\"."
+        },
+        "normalized_city": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The city the posting names, in one canonical spelling (\"Munich\" for a posting stored as \"München\", \"London\" for \"London Area\" or \"Mayfair\"). null when the location could not be placed. city_or matches on it."
+        },
+        "seniority_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "How seniority was decided: \"source\", \"title\" or \"onet_prior\" (occupation-level prior)."
+        },
+        "esco_skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "label": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "description": "ESCO skill concepts for this job's extracted skills, as stable id/label pairs."
+        },
+        "ghost_score": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "0-100 likelihood the posting is stale or evergreen rather than a live vacancy, from repost cadence, tenure and content signals. Null until scored."
+        },
+        "language": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The language the posting text is written in, as a lowercase ISO 639-1 code, e.g. \"en\", \"sv\", \"de\". The language of the posting, not of the country it sits in. Null until the posting has been labelled."
+        }
+      }
+    },
+    "JobSource": {
+      "type": "object",
+      "description": "One board a posting was seen on.",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "description": "Collector source the posting was seen on, e.g. linkedin, indeed."
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The posting's URL on that source."
+        },
+        "seen_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the posting was seen on that source."
+        }
+      }
+    },
+    "JobTechnology": {
+      "type": "object",
+      "description": "One technology a posting names, graded. Beta: served while the per-job technologies flag is on.",
+      "required": [
+        "slug",
+        "name",
+        "kind",
+        "category",
+        "parent_category",
+        "logo",
+        "strength",
+        "confidence",
+        "sections",
+        "in_title",
+        "terms",
+        "terms_cs"
+      ],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "description": "Taxonomy slug, e.g. \"snowflake\" or \".net\"."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name, e.g. \"Snowflake\"."
+        },
+        "kind": {
+          "type": "string",
+          "description": "product, language, framework, methodology, certification or standard."
+        },
+        "category": {
+          "type": "string",
+          "description": "e.g. \"Databases\". Empty string when unknown."
+        },
+        "parent_category": {
+          "type": "string",
+          "description": "e.g. \"Software and tools\". Empty string when unknown."
+        },
+        "logo": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uri",
+          "description": "Absolute URL of the technology's logo; null when there is none."
+        },
+        "strength": {
+          "type": "string",
+          "enum": [
+            "required",
+            "preferred",
+            "mentioned"
+          ],
+          "description": "required = the posting asks for it; preferred = a nice-to-have; mentioned = named without being asked for. The strongest reading of the posting."
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "description": "high = independent checks agree the posting names it; medium = required or in the title; low = otherwise."
+        },
+        "sections": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Posting sections it appears in, e.g. [\"requirements\"]."
+        },
+        "in_title": {
+          "type": "boolean",
+          "description": "Whether the job title names it."
+        },
+        "terms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Case-insensitive text forms that find the mention in description."
+        },
+        "terms_cs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Case-sensitive text forms, e.g. \"Go\" or \"R\"."
+        }
+      }
+    }
+  }
+}

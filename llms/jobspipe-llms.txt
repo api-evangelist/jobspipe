@@ -1,0 +1,66 @@
+# JobsPipe Docs
+
+> Developer documentation for the JobsPipe API: authentication, endpoints, job schema, webhooks, usage, and guides.
+
+## Pages
+
+- [FAQ](https://docs.jobspipe.dev/faq): Common questions about data, the API, limits, and billing.
+- [Quickstart](https://docs.jobspipe.dev/quickstart): Create an API key and run your first job search in under two minutes.
+- [Introduction](https://docs.jobspipe.dev): Every job posting, one API. The JobsPipe API returns live job postings from 30+ sources through a single normalized REST endpoint.
+- [Authentication](https://docs.jobspipe.dev/authentication): JobsPipe authenticates every API request with a secret Bearer key.
+- [Changelog](https://docs.jobspipe.dev/changelog): Notable changes to the JobsPipe API and dashboard.
+- [n8n](https://docs.jobspipe.dev/integrations/n8n): Use JobsPipe in n8n - importable workflow templates for daily job feeds to Google Sheets, Signal webhooks to Slack, company hiring signals and an AI agent on the JobsPipe MCP server, plus credential setup and the JSON body settings that avoid a 400.
+- [Lovable, Bolt and Supabase](https://docs.jobspipe.dev/integrations/lovable-bolt-supabase): Use JobsPipe in an app built with Lovable or Bolt - keep the API key in a Supabase Edge Function secret, call JobsPipe from the function, and call the function from your app. Includes a complete Edge Function and a prompt to paste into the builder.
+- [Search jobs](https://docs.jobspipe.dev/reference/search-jobs): Interactive reference and playground for POST /v1/jobs/search.
+- [Scan stack](https://docs.jobspipe.dev/reference/stack-scan): Interactive reference and playground for POST /v1/stack/scan.
+- [Manage API keys](https://docs.jobspipe.dev/dashboard/api-keys): Generate, name, and revoke API keys from the dashboard.
+- [Signals & Workflows](https://docs.jobspipe.dev/dashboard/signals): Save a search as a Signal and get new matching jobs or companies, or companies that start hiring for a technology, by email, Slack or webhook, or start from a Workflow template.
+- [Slack](https://docs.jobspipe.dev/dashboard/slack): Search jobs and scan tech stacks from Slack with /jobspipe and @JobsPipe mentions, and send Signals to a Slack channel.
+- [Delete your account](https://docs.jobspipe.dev/dashboard/delete-account): Permanently delete your JobsPipe account and personal data from the dashboard, and what is kept afterwards.
+- [Billing & plans](https://docs.jobspipe.dev/dashboard/billing): Upgrade, downgrade, and manage your subscription from the dashboard.
+- [Workspaces & teams](https://docs.jobspipe.dev/dashboard/teams): Organize work into workspaces and invite teammates.
+- [Tracking usage](https://docs.jobspipe.dev/usage/tracking-usage): See how many credits you have used this month, in the dashboard or with the API.
+- [Plans](https://docs.jobspipe.dev/usage/plans): Free, four packages (Builder, Growth, Scale, Business) or Enterprise - credits, rate limit, page size, price and extra credits.
+- [Rate limits & quotas](https://docs.jobspipe.dev/usage/rate-limits): Per-second rate limits, monthly credits, and how usage is counted.
+- [Get told when a job closes](https://docs.jobspipe.dev/guides/real-time-alerts-with-monitors): Follow the jobs you hold with a monitor and receive a signed job.closed webhook when one closes, instead of re-checking them.
+- [Build a daily new-jobs feed](https://docs.jobspipe.dev/guides/daily-new-jobs-feed): Poll JobsPipe for postings added since your last run.
+- [Prototype with the sandbox](https://docs.jobspipe.dev/guides/prototype-with-the-sandbox): Wire up and test your client against the free sandbox with no API key, then switch to live data by changing the path and adding a key.
+- [Enrich a lead from a domain](https://docs.jobspipe.dev/guides/enrich-a-lead-from-a-domain): Turn a work email or a domain into a company record with headcount, headquarters and two views of its tech stack.
+- [Salary and skills research](https://docs.jobspipe.dev/guides/salary-and-skills-research): Pick an occupation, see what it pays and which skills it asks for, then benchmark a salary, using the Insights endpoints.
+- [Plain-language job search for AI apps](https://docs.jobspipe.dev/guides/plain-language-search-for-ai-apps): Pass a user's sentence straight to JobsPipe from a chatbot or agent and get back ranked postings with a relevance score.
+- [Technologies on each job](https://docs.jobspipe.dev/guides/technologies-on-each-job): Add a graded list of technologies to every posting a search returns, and tell required skills from nice-to-haves.
+- [Find remote jobs by country](https://docs.jobspipe.dev/guides/remote-by-country): Combine the remote flag with country filters to target remote roles.
+- [Guides](https://docs.jobspipe.dev/guides): Examples by use case
+- [Monitor hiring at target companies](https://docs.jobspipe.dev/guides/monitor-companies): Track new postings at a set of companies to spot hiring signals.
+- [Find companies that use a technology](https://docs.jobspipe.dev/guides/find-companies-using-a-technology): Build a prospect list of companies whose own job postings show they use a product, graded by evidence, and download it as CSV.
+- [Technologies (Beta)](https://docs.jobspipe.dev/api-reference/technologies): The technologies named in job postings, with company counts, evidence tiers and adoption over time, via GET /v1/technologies and GET /v1/technologies/{slug}.
+- [Pagination](https://docs.jobspipe.dev/api-reference/pagination): Page through large result sets with cursors, offsets, or page numbers.
+- [Jobs Search](https://docs.jobspipe.dev/api-reference/jobs-search): Search live job postings with POST /v1/jobs/search.
+- [Job Schema](https://docs.jobspipe.dev/api-reference/job-schema): Every field returned for a job, plus the response metadata.
+- [Errors](https://docs.jobspipe.dev/api-reference/errors): HTTP status codes the JobsPipe API returns, and how to handle them.
+- [Company Lookup](https://docs.jobspipe.dev/api-reference/companies): Fetch one company's enriched record with GET /v1/companies/{key}.
+- [Company Tech Stack (Beta)](https://docs.jobspipe.dev/api-reference/company-technologies): Every technology a company's job postings name, graded by evidence, via GET /v1/companies/{key}/technologies.
+- [Filter Reference](https://docs.jobspipe.dev/api-reference/filters): Every filter accepted by POST /v1/jobs/search.
+- [Monitors](https://docs.jobspipe.dev/api-reference/monitors): Follow specific jobs and get a job.closed webhook when one closes. A monitor lists the jobs, names one of your webhook endpoints, and runs for 1 to 365 days (default 90). Free.
+- [Company Search by Technology (Beta)](https://docs.jobspipe.dev/api-reference/companies-search): Find companies by the technologies their own job postings name, with graded evidence per technology, via POST /v1/companies/search.
+- [Webhooks](https://docs.jobspipe.dev/api-reference/webhooks): JobsPipe webhooks POST signed JSON to your endpoint - job.closed when a job in one of your monitors closes, alert.matched for Signal matches, HMAC-SHA256 verification, retry schedule.
+- [Labour Market Insights API](https://docs.jobspipe.dev/api-reference/insights): Labour-market insights computed live from deduplicated job postings - occupations, industries, skills, compensation, and AI exposure.
+- [Agentic Search](https://docs.jobspipe.dev/api-reference/agentic-search): Search job postings from a plain-language request with POST /v1/jobs/agentic-search.
+- [Technology Export (Beta)](https://docs.jobspipe.dev/api-reference/technologies-export): Download every company that uses the technologies you name, as CSV or JSON Lines, with the evidence per technology, via GET /v1/technologies/export.
+- [Stack Scan](https://docs.jobspipe.dev/api-reference/stack-scan): Detect a website's technology stack with POST /v1/stack/scan.
+- [MCP server](https://docs.jobspipe.dev/ai-agents/mcp): Connect AI agents and MCP clients to JobsPipe — search live job postings over the Model Context Protocol, signing in with OAuth or an API key.
+- [Connect JobsPipe to your assistant](https://docs.jobspipe.dev/ai-agents/connect): Step-by-step setup for every AI assistant that can talk to JobsPipe — Claude, ChatGPT, Gemini, Grok, Perplexity, Le Chat, Cursor and the coding agents — from the directory listing or as a custom MCP connector.
+- [Trending skills by occupation](https://docs.jobspipe.dev/reference/insights/insights-trending-skills): Interactive reference and playground for GET /v1/insights/occupations/{code}/skills/trending.
+- [Salary benchmark](https://docs.jobspipe.dev/reference/insights/insights-salary-benchmark): Interactive reference and playground for POST /v1/insights/salary/benchmark.
+- [AI exposure](https://docs.jobspipe.dev/reference/insights/insights-ai-exposure): Interactive reference and playground for GET /v1/insights/technology/ai-exposure.
+- [Occupation snapshot](https://docs.jobspipe.dev/reference/insights/insights-occupation-snapshot): Interactive reference and playground for GET /v1/insights/occupations/{code}.
+- [Trending skills by industry](https://docs.jobspipe.dev/reference/insights/insights-industry-trending): Interactive reference and playground for GET /v1/insights/industries/{division}/skills/trending.
+- [Skill demand trend](https://docs.jobspipe.dev/reference/insights/insights-skill-trend): Interactive reference and playground for GET /v1/insights/skills/{slug}/trend.
+- [Compensation by occupation](https://docs.jobspipe.dev/reference/insights/insights-compensation): Interactive reference and playground for GET /v1/insights/occupations/{code}/compensation.
+- [List occupations](https://docs.jobspipe.dev/reference/insights/insights-occupations): Interactive reference and playground for GET /v1/insights/occupations.
+- [Top skills by occupation](https://docs.jobspipe.dev/reference/insights/insights-top-skills): Interactive reference and playground for GET /v1/insights/occupations/{code}/skills/top.
+- [List industries](https://docs.jobspipe.dev/reference/insights/insights-industries): Interactive reference and playground for GET /v1/insights/industries.
+
+## Related
+- [API & agent integration index](https://jobspipe.dev/api/llms.txt)
+- [Site index](https://jobspipe.dev/llms.txt)

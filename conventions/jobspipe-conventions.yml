@@ -1,0 +1,33 @@
+generated: '2026-10-02'
+method: searched
+generator: extract-docs-artifacts.py (local)
+source: https://docs.jobspipe.dev/api-reference/pagination
+sources:
+- https://docs.jobspipe.dev/api-reference/pagination
+- https://docs.jobspipe.dev/quickstart
+- https://docs.jobspipe.dev/authentication
+- https://docs.jobspipe.dev/dashboard/api-keys
+idempotency:
+  scope: []
+  coverage: partial
+  evidence: Idempotency-Key on 5 of 14 mutating operations
+  header: Idempotency-Key
+  mechanism: request header / body token declared in the OpenAPI
+  verified: derived
+pagination:
+  style: cursor (recommended) with optional offset/page numeric pagination
+  params:
+  - limit
+  - cursor
+  - offset
+  - page
+  - include_total_results
+  - order_by
+  response_fields:
+  - metadata.next_cursor
+  - metadata.total_results
+  evidence: 'Cursor pagination uses a `metadata.next_cursor` value returned in the response; pass it back as `cursor` in the request. Offset or
+    page can be used via `offset` or `page` fields. Setting `include_total_results: true` returns `metadata.total_results`.'
+authentication: 'Bearer token in `Authorization: Bearer <key>` header or `x-api-key: <key>` header; every request requires a valid API key except
+  sandbox endpoints.'
+docs: https://docs.jobspipe.dev/api-reference/pagination
