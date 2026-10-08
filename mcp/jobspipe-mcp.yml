@@ -1,10 +1,23 @@
-generated: '2026-10-02'
+generated: '2026-10-08'
 method: probed
-source: https://jobspipe.dev/mcp
+source: https://docs.jobspipe.dev/ai-agents/mcp
+correction: provider-reported 2026-10-08 (dvir@jobspipe.dev) -- hosted endpoint is mcp.jobspipe.dev/mcp and it now supports OAuth; verified live
 deployment:
   mode: remote
-  endpoint: https://jobspipe.dev/mcp
+  endpoint: https://mcp.jobspipe.dev/mcp
   install: null
   package: null
-  auth: api-key
+  auth: oauth2
+  auth_methods:
+  - type: oauth2
+    protected_resource_metadata: https://mcp.jobspipe.dev/.well-known/oauth-protected-resource
+    authorization_servers:
+    - https://api.jobspipe.dev
+    scopes_supported: [openid, profile, email, offline_access]
+  - type: api-key
+    scheme: Authorization Bearer (jp_live_ key)
+    obtain: https://jobspipe.dev/dashboard
   verified: probed
+  evidence: 'POST initialize without credentials -> 401, WWW-Authenticate: Bearer realm="jobspipe", resource_metadata="https://mcp.jobspipe.dev/.well-known/oauth-protected-resource"'
+tools: null
+tools_note: tools/list needs credentials; not captured
