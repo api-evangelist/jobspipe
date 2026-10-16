@@ -2,16 +2,16 @@
 kin_checks:
   slug: jobspipe
   schema_version: 0.23.0
-  scored_at: '2026-10-04'
-  run_ts: 2026-10-04T225258
+  scored_at: '2026-10-11'
+  run_ts: 2026-10-11T110117
   note: Actionable checks (missed + partial) in `checks`, plus the ids that did not
     apply in `na`. Everything else in rubric/scoring-0.23.0.yml was earned; counts
     below let you verify that.
   counts:
     total: 153
-    earned: 53
-    partial: 33
-    missed: 41
+    earned: 48
+    partial: 37
+    missed: 42
     na: 26
   checks:
   - id: tags_present
@@ -34,6 +34,8 @@ kin_checks:
     status: missed
     detail: 0 of 10 openapi documents pass; credited at 90% because of their provenance
       (unknown)
+  - id: servers_resolvable
+    status: missed
   - id: inbound_contract_published
     status: missed
   - id: lifecycle_documented
@@ -118,9 +120,6 @@ kin_checks:
     earned: 2.7
     detail: 10 of 10 openapi documents pass; credited at 90% because of their provenance
       (unknown)
-  - id: servers_resolvable
-    status: partial
-    earned: 4.5
   - id: operations_summary_coverage
     status: partial
     earned: 4.86
@@ -197,29 +196,41 @@ kin_checks:
     earned: 3.6
   - id: rules_present
     status: partial
-    earned: 2.5
+    earned: 9.0
   - id: rules_substantial
     status: partial
-    earned: 1.25
+    earned: 4.5
   - id: balanced_severities
     status: partial
-    earned: 0.75
+    earned: 2.7
   - id: vocabulary_published
     status: partial
-    earned: 1.25
+    earned: 4.5
   - id: conformance_declared
     status: partial
-    earned: 1.5
+    earned: 5.4
+  - id: rate_limits_documented
+    status: partial
+    earned: 7.2
+  - id: rate_limits_rich
+    status: partial
+    earned: 3.6
   - id: agent_skill_present
     status: partial
-    earned: 0.75
+    earned: 2.7
+  - id: plans_present
+    status: partial
+    earned: 7.2
+  - id: plans_multiple
+    status: partial
+    earned: 3.6
   - id: agentic_access
     status: partial
-    earned: 2.5
-    detail: 'authorship: derived'
+    earned: 9.0
+    detail: 'authorship: unknown'
   - id: mcp_server
     status: partial
-    earned: 4.8
+    earned: 4.32
     detail: 'grade: documented'
   - id: auth_clarity
     status: partial
@@ -233,10 +244,14 @@ kin_checks:
     status: partial
     earned: 3.5
     detail: 'grade: documented'
+  - id: event_surface_described
+    status: partial
+    earned: 5.4
+    detail: 'authorship: unknown'
   - id: agent_skills
     status: partial
-    earned: 1.25
-    detail: 'authorship: derived'
+    earned: 4.5
+    detail: 'authorship: unknown'
   na:
   - asyncapi_3_x
   - channels_defined
