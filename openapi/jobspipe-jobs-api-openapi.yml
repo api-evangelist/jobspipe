@@ -143,17 +143,6 @@ paths:
       - Jobs
 components:
   schemas:
-    ErrorResponse:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: string
-          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
-        message:
-          type: string
-          description: Additional detail. Present on 402 quota responses; other errors carry only error.
     Job:
       type: object
       description: A normalized job posting.
@@ -550,54 +539,17 @@ components:
           - string
           - 'null'
           description: The language the posting text is written in, as a lowercase ISO 639-1 code, e.g. "en", "sv", "de". The language of the posting, not of the country it sits in. Null until the posting has been labelled.
-    RateLimitErrorResponse:
+    ErrorResponse:
       type: object
       required:
       - error
-      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
       properties:
         error:
           type: string
-          description: 'Human-readable message: "Rate limit exceeded".'
-    AgenticSearchRequest:
-      type: object
-      required:
-      - query
-      additionalProperties: false
-      properties:
-        query:
+          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
+        message:
           type: string
-          minLength: 2
-          maxLength: 500
-          description: What the caller is looking for, in plain language, e.g. "senior backend engineer in Berlin, visa sponsorship, hybrid ok".
-        filters:
-          type: object
-          additionalProperties: true
-          description: Hard filters applied to every planned search, in the filter names of /v1/jobs/search (job_country_code_or, city_or, region_or, remote, posted_at_max_age_days, language_or, ...). Unknown keys are ignored. Paging and ordering keys are not accepted.
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 25
-          default: 10
-          description: Postings to return, at most 25 and never more than the plan's page size.
-    JobSource:
-      type: object
-      description: One board a posting was seen on.
-      properties:
-        provider:
-          type: string
-          description: Collector source the posting was seen on, e.g. linkedin, indeed.
-        url:
-          type:
-          - string
-          - 'null'
-          description: The posting's URL on that source.
-        seen_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the posting was seen on that source.
+          description: Additional detail. Present on 402 quota responses; other errors carry only error.
     CompanyObject:
       type: object
       description: Structured details about the hiring company. Every field is independently optional.
@@ -822,251 +774,6 @@ components:
           items:
             $ref: '#/components/schemas/Job'
           description: The page of matching job postings.
-    JobTechnology:
-      type: object
-      description: 'One technology a posting names, graded. Beta: served while the per-job technologies flag is on.'
-      required:
-      - slug
-      - name
-      - kind
-      - category
-      - parent_category
-      - logo
-      - strength
-      - confidence
-      - sections
-      - in_title
-      - terms
-      - terms_cs
-      properties:
-        slug:
-          type: string
-          description: Taxonomy slug, e.g. "snowflake" or ".net".
-        name:
-          type: string
-          description: Display name, e.g. "Snowflake".
-        kind:
-          type: string
-          description: product, language, framework, methodology, certification or standard.
-        category:
-          type: string
-          description: e.g. "Databases". Empty string when unknown.
-        parent_category:
-          type: string
-          description: e.g. "Software and tools". Empty string when unknown.
-        logo:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the technology's logo; null when there is none.
-        strength:
-          type: string
-          enum:
-          - required
-          - preferred
-          - mentioned
-          description: required = the posting asks for it; preferred = a nice-to-have; mentioned = named without being asked for. The strongest reading of the posting.
-        confidence:
-          type: string
-          enum:
-          - high
-          - medium
-          - low
-          description: high = independent checks agree the posting names it; medium = required or in the title; low = otherwise.
-        sections:
-          type: array
-          items:
-            type: string
-          description: Posting sections it appears in, e.g. ["requirements"].
-        in_title:
-          type: boolean
-          description: Whether the job title names it.
-        terms:
-          type: array
-          items:
-            type: string
-          description: Case-insensitive text forms that find the mention in description.
-        terms_cs:
-          type: array
-          items:
-            type: string
-          description: Case-sensitive text forms, e.g. "Go" or "R".
-    AgenticSearchResponse:
-      type: object
-      required:
-      - metadata
-      - data
-      properties:
-        metadata:
-          type: object
-          description: 'What the call cost and how the page was produced. total_results and next_cursor are always null: the page is the answer, not a window on a larger set.'
-          properties:
-            total_results:
-              type:
-              - integer
-              - 'null'
-            truncated_results:
-              type: integer
-            next_cursor:
-              type:
-              - string
-              - 'null'
-            credits_charged:
-              type: integer
-              description: 'Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC).'
-            jobs_already_paid:
-              type: integer
-            credits_remaining:
-              type: integer
-              description: 'Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered.'
-            credits_allowance:
-              type: integer
-              description: 'What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered.'
-            agentic:
-              type: object
-              description: The plan and its execution, for transparency and debugging.
-              properties:
-                intent:
-                  type: string
-                  description: The request restated in one sentence.
-                role_intent:
-                  type: string
-                  description: The role, level and field alone; what the relevance score judges.
-                rounds:
-                  type: integer
-                  description: Planning rounds run, 1 to 3.
-                stop:
-                  type: string
-                  description: Why the loop stopped, e.g. "enough candidates passed".
-                candidates:
-                  type: integer
-                  description: Distinct postings considered.
-                dropped:
-                  type: integer
-                  description: Candidates removed by the hard-constraint checks.
-                passed:
-                  type: integer
-                  description: Candidates whose relevance cleared the bar.
-                fallback_used:
-                  type: boolean
-                  description: True when the planner was unavailable and the request words were searched as a title instead.
-                lanes:
-                  type: array
-                  description: Each structured search that ran, with its filters and what it returned.
-                  items:
-                    type: object
-                    properties:
-                      round:
-                        type: integer
-                      name:
-                        type: string
-                      filters:
-                        type: object
-                        additionalProperties: true
-                      returned:
-                        type: integer
-                      relevant:
-                        type: integer
-                      ms:
-                        type: integer
-                      error:
-                        type: string
-                judge:
-                  type: array
-                  description: Conditions read from each posting's text, e.g. whether the employer sponsors visas.
-                  items:
-                    type: object
-                    properties:
-                      key:
-                        type: string
-                      question:
-                        type: string
-                      want:
-                        type: string
-                        enum:
-                        - 'yes'
-                        - 'no'
-                        description: 'The answer the request wants: no for an exclusion such as "not hospitals".'
-                      hard:
-                        type: boolean
-                verify:
-                  type: object
-                  additionalProperties: true
-                  description: Hard rules checked on the stored record.
-                jev_calls:
-                  type: integer
-                jev_failed_batches:
-                  type: integer
-                recheck:
-                  type: object
-                  description: 'The second look at the shortlist: a stricter judgment of exact role and level against the request''s own words.'
-                  properties:
-                    ran:
-                      type: boolean
-                    candidates:
-                      type: integer
-                    failed:
-                      type: boolean
-                    ms:
-                      type: number
-                timings:
-                  type: object
-                  properties:
-                    planner_ms:
-                      type: number
-                    search_ms:
-                      type: number
-                    jev_ms:
-                      type: number
-                    total_ms:
-                      type: number
-        data:
-          type: array
-          description: The best-matching postings, highest relevance first. Postings scored below 0.3 are never returned, so data can be shorter than limit, or empty.
-          items:
-            allOf:
-            - $ref: '#/components/schemas/Job'
-            - type: object
-              properties:
-                relevance:
-                  type:
-                  - number
-                  - 'null'
-                  description: '0-1: how well the posting matches the role asked for, scaled by any text conditions in the request. null when scoring was unavailable and the page is newest-first.'
-                judgments:
-                  type:
-                  - object
-                  - 'null'
-                  description: 'The raw judgments behind relevance: role relevance and, per condition, the probabilities that the text states yes, states no, or says nothing.'
-                  properties:
-                    relevance:
-                      type: number
-                    injection:
-                      type: number
-                      description: Probability that the posting text tries to instruct the system reading it. At 0.7 or above the posting is never returned.
-                    recheck:
-                      type: number
-                      description: 'The shortlist re-check: probability that the requester would apply, judged on exact role and level.'
-                    constraints:
-                      type: object
-                      additionalProperties:
-                        type: object
-                        properties:
-                          'yes':
-                            type: number
-                          'no':
-                            type: number
-                          not_stated:
-                            type: number
-                uncertain:
-                  type: boolean
-                  description: judgments.relevance is between 0.3 and 0.7, where the role judgment is least stable; worth a human look.
-                lanes:
-                  type: array
-                  items:
-                    type: string
-                  description: Which planned searches returned this posting.
     JobSearchRequest:
       type: object
       description: Optional filters for the job search. All fields are optional and combine with AND. Array filters ending in _or match any of their values; those ending in _not exclude their values. Unknown fields are rejected with HTTP 400.
@@ -1369,15 +1076,299 @@ components:
           type: boolean
           description: 'DEPRECATED and ignored. Preview mode has been removed: every search returns unmasked records and costs 1 credit per job not already paid for this month. Still accepted so existing integrations do not break, but it changes neither the response nor the price.'
       additionalProperties: false
-  parameters:
-    IdempotencyKey:
-      name: Idempotency-Key
-      in: header
-      required: false
-      schema:
-        type: string
-        maxLength: 255
-      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
+    AgenticSearchResponse:
+      type: object
+      required:
+      - metadata
+      - data
+      properties:
+        metadata:
+          type: object
+          description: 'What the call cost and how the page was produced. total_results and next_cursor are always null: the page is the answer, not a window on a larger set.'
+          properties:
+            total_results:
+              type:
+              - integer
+              - 'null'
+            truncated_results:
+              type: integer
+            next_cursor:
+              type:
+              - string
+              - 'null'
+            credits_charged:
+              type: integer
+              description: 'Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC).'
+            jobs_already_paid:
+              type: integer
+            credits_remaining:
+              type: integer
+              description: 'Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered.'
+            credits_allowance:
+              type: integer
+              description: 'What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered.'
+            agentic:
+              type: object
+              description: The plan and its execution, for transparency and debugging.
+              properties:
+                intent:
+                  type: string
+                  description: The request restated in one sentence.
+                role_intent:
+                  type: string
+                  description: The role, level and field alone; what the relevance score judges.
+                rounds:
+                  type: integer
+                  description: Planning rounds run, 1 to 3.
+                stop:
+                  type: string
+                  description: Why the loop stopped, e.g. "enough candidates passed".
+                candidates:
+                  type: integer
+                  description: Distinct postings considered.
+                dropped:
+                  type: integer
+                  description: Candidates removed by the hard-constraint checks.
+                passed:
+                  type: integer
+                  description: Candidates whose relevance cleared the bar.
+                fallback_used:
+                  type: boolean
+                  description: True when the planner was unavailable and the request words were searched as a title instead.
+                lanes:
+                  type: array
+                  description: Each structured search that ran, with its filters and what it returned.
+                  items:
+                    type: object
+                    properties:
+                      round:
+                        type: integer
+                      name:
+                        type: string
+                      filters:
+                        type: object
+                        additionalProperties: true
+                      returned:
+                        type: integer
+                      relevant:
+                        type: integer
+                      ms:
+                        type: integer
+                      error:
+                        type: string
+                judge:
+                  type: array
+                  description: Conditions read from each posting's text, e.g. whether the employer sponsors visas.
+                  items:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                      question:
+                        type: string
+                      want:
+                        type: string
+                        enum:
+                        - 'yes'
+                        - 'no'
+                        description: 'The answer the request wants: no for an exclusion such as "not hospitals".'
+                      hard:
+                        type: boolean
+                verify:
+                  type: object
+                  additionalProperties: true
+                  description: Hard rules checked on the stored record.
+                jev_calls:
+                  type: integer
+                jev_failed_batches:
+                  type: integer
+                recheck:
+                  type: object
+                  description: 'The second look at the shortlist: a stricter judgment of exact role and level against the request''s own words.'
+                  properties:
+                    ran:
+                      type: boolean
+                    candidates:
+                      type: integer
+                    failed:
+                      type: boolean
+                    ms:
+                      type: number
+                timings:
+                  type: object
+                  properties:
+                    planner_ms:
+                      type: number
+                    search_ms:
+                      type: number
+                    jev_ms:
+                      type: number
+                    total_ms:
+                      type: number
+        data:
+          type: array
+          description: The best-matching postings, highest relevance first. Postings scored below 0.3 are never returned, so data can be shorter than limit, or empty.
+          items:
+            allOf:
+            - $ref: '#/components/schemas/Job'
+            - type: object
+              properties:
+                relevance:
+                  type:
+                  - number
+                  - 'null'
+                  description: '0-1: how well the posting matches the role asked for, scaled by any text conditions in the request. null when scoring was unavailable and the page is newest-first.'
+                judgments:
+                  type:
+                  - object
+                  - 'null'
+                  description: 'The raw judgments behind relevance: role relevance and, per condition, the probabilities that the text states yes, states no, or says nothing.'
+                  properties:
+                    relevance:
+                      type: number
+                    injection:
+                      type: number
+                      description: Probability that the posting text tries to instruct the system reading it. At 0.7 or above the posting is never returned.
+                    recheck:
+                      type: number
+                      description: 'The shortlist re-check: probability that the requester would apply, judged on exact role and level.'
+                    constraints:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          'yes':
+                            type: number
+                          'no':
+                            type: number
+                          not_stated:
+                            type: number
+                uncertain:
+                  type: boolean
+                  description: judgments.relevance is between 0.3 and 0.7, where the role judgment is least stable; worth a human look.
+                lanes:
+                  type: array
+                  items:
+                    type: string
+                  description: Which planned searches returned this posting.
+    AgenticSearchRequest:
+      type: object
+      required:
+      - query
+      additionalProperties: false
+      properties:
+        query:
+          type: string
+          minLength: 2
+          maxLength: 500
+          description: What the caller is looking for, in plain language, e.g. "senior backend engineer in Berlin, visa sponsorship, hybrid ok".
+        filters:
+          type: object
+          additionalProperties: true
+          description: Hard filters applied to every planned search, in the filter names of /v1/jobs/search (job_country_code_or, city_or, region_or, remote, posted_at_max_age_days, language_or, ...). Unknown keys are ignored. Paging and ordering keys are not accepted.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 25
+          default: 10
+          description: Postings to return, at most 25 and never more than the plan's page size.
+    JobSource:
+      type: object
+      description: One board a posting was seen on.
+      properties:
+        provider:
+          type: string
+          description: Collector source the posting was seen on, e.g. linkedin, indeed.
+        url:
+          type:
+          - string
+          - 'null'
+          description: The posting's URL on that source.
+        seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the posting was seen on that source.
+    JobTechnology:
+      type: object
+      description: 'One technology a posting names, graded. Beta: served while the per-job technologies flag is on.'
+      required:
+      - slug
+      - name
+      - kind
+      - category
+      - parent_category
+      - logo
+      - strength
+      - confidence
+      - sections
+      - in_title
+      - terms
+      - terms_cs
+      properties:
+        slug:
+          type: string
+          description: Taxonomy slug, e.g. "snowflake" or ".net".
+        name:
+          type: string
+          description: Display name, e.g. "Snowflake".
+        kind:
+          type: string
+          description: product, language, framework, methodology, certification or standard.
+        category:
+          type: string
+          description: e.g. "Databases". Empty string when unknown.
+        parent_category:
+          type: string
+          description: e.g. "Software and tools". Empty string when unknown.
+        logo:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the technology's logo; null when there is none.
+        strength:
+          type: string
+          enum:
+          - required
+          - preferred
+          - mentioned
+          description: required = the posting asks for it; preferred = a nice-to-have; mentioned = named without being asked for. The strongest reading of the posting.
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+          description: high = independent checks agree the posting names it; medium = required or in the title; low = otherwise.
+        sections:
+          type: array
+          items:
+            type: string
+          description: Posting sections it appears in, e.g. ["requirements"].
+        in_title:
+          type: boolean
+          description: Whether the job title names it.
+        terms:
+          type: array
+          items:
+            type: string
+          description: Case-insensitive text forms that find the mention in description.
+        terms_cs:
+          type: array
+          items:
+            type: string
+          description: Case-sensitive text forms, e.g. "Go" or "R".
+    RateLimitErrorResponse:
+      type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      properties:
+        error:
+          type: string
+          description: 'Human-readable message: "Rate limit exceeded".'
   headers:
     Deprecation:
       description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 9745 date of when the endpoint was or will be deprecated. Absent on current endpoints.
@@ -1387,6 +1378,15 @@ components:
       description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 8594 timestamp after which the endpoint stops working - at least 6 months after the Deprecation date. Absent on current endpoints.
       schema:
         type: string
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
   securitySchemes:
     apiKey:
       type: http

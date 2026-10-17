@@ -581,34 +581,6 @@ paths:
                 $ref: '#/components/schemas/RateLimitErrorResponse'
 components:
   schemas:
-    InsightSkillTrendResponse:
-      type: object
-      properties:
-        skill:
-          type: string
-        window_days:
-          type: integer
-        series:
-          type: array
-          items:
-            type: object
-            properties:
-              month:
-                type: string
-              mentions:
-                type: integer
-              total:
-                type: integer
-              share:
-                type: number
-        top_occupations:
-          type: array
-          items:
-            $ref: '#/components/schemas/InsightRankingItem'
-        top_industries:
-          type: array
-          items:
-            $ref: '#/components/schemas/InsightRankingItem'
     InsightBenchmarkRequest:
       type: object
       description: Requires occupation_code or title.
@@ -646,6 +618,24 @@ components:
         message:
           type: string
           description: Additional detail. Present on 402 quota responses; other errors carry only error.
+    InsightTopSkillsResponse:
+      type: object
+      properties:
+        scope:
+          type: object
+        window_days:
+          type: integer
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              skill:
+                type: string
+              count:
+                type: integer
+              share:
+                type: number
     InsightCompensationResponse:
       type: object
       properties:
@@ -720,33 +710,112 @@ components:
                 type: number
               growth_pct:
                 type: number
-    InsightTopSkillsResponse:
+    InsightRankingItem:
       type: object
       properties:
-        scope:
-          type: object
+        value:
+          type: string
+        label:
+          type: string
+          nullable: true
+        count:
+          type: integer
+        share:
+          type: number
+    InsightIndustriesResponse:
+      type: object
+      properties:
         window_days:
           type: integer
-        skills:
+        industries:
           type: array
           items:
             type: object
             properties:
-              skill:
+              division:
                 type: string
+                description: ISIC Rev.4 division.
+              label:
+                type: string
+                nullable: true
               count:
                 type: integer
               share:
                 type: number
-    RateLimitErrorResponse:
+    InsightOccupationsResponse:
       type: object
-      required:
-      - error
-      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
       properties:
-        error:
+        window_days:
+          type: integer
+        occupations:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: ISCO-08 occupation code.
+              label:
+                type: string
+                nullable: true
+              count:
+                type: integer
+              share:
+                type: number
+    InsightSkillTrendResponse:
+      type: object
+      properties:
+        skill:
           type: string
-          description: 'Human-readable message: "Rate limit exceeded".'
+        window_days:
+          type: integer
+        series:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              mentions:
+                type: integer
+              total:
+                type: integer
+              share:
+                type: number
+        top_occupations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+        top_industries:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+    InsightSnapshotResponse:
+      type: object
+      properties:
+        occupation_code:
+          type: string
+        occupation_label:
+          type: string
+          nullable: true
+        window_days:
+          type: integer
+        count:
+          type: integer
+        remote_share:
+          type: number
+        top_companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+        top_titles:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
     InsightAiExposureResponse:
       type: object
       properties:
@@ -780,84 +849,15 @@ components:
               premium_pct:
                 type: number
                 nullable: true
-    InsightOccupationsResponse:
+    RateLimitErrorResponse:
       type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
       properties:
-        window_days:
-          type: integer
-        occupations:
-          type: array
-          items:
-            type: object
-            properties:
-              code:
-                type: string
-                description: ISCO-08 occupation code.
-              label:
-                type: string
-                nullable: true
-              count:
-                type: integer
-              share:
-                type: number
-    InsightIndustriesResponse:
-      type: object
-      properties:
-        window_days:
-          type: integer
-        industries:
-          type: array
-          items:
-            type: object
-            properties:
-              division:
-                type: string
-                description: ISIC Rev.4 division.
-              label:
-                type: string
-                nullable: true
-              count:
-                type: integer
-              share:
-                type: number
-    InsightSnapshotResponse:
-      type: object
-      properties:
-        occupation_code:
+        error:
           type: string
-        occupation_label:
-          type: string
-          nullable: true
-        window_days:
-          type: integer
-        count:
-          type: integer
-        remote_share:
-          type: number
-        top_companies:
-          type: array
-          items:
-            $ref: '#/components/schemas/InsightRankingItem'
-        top_titles:
-          type: array
-          items:
-            $ref: '#/components/schemas/InsightRankingItem'
-        countries:
-          type: array
-          items:
-            $ref: '#/components/schemas/InsightRankingItem'
-    InsightRankingItem:
-      type: object
-      properties:
-        value:
-          type: string
-        label:
-          type: string
-          nullable: true
-        count:
-          type: integer
-        share:
-          type: number
+          description: 'Human-readable message: "Rate limit exceeded".'
   parameters:
     IdempotencyKey:
       name: Idempotency-Key

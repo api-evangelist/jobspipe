@@ -224,115 +224,6 @@ components:
         message:
           type: string
           description: Additional detail. Present on 402 quota responses; other errors carry only error.
-    CompanySearchResponse:
-      type: object
-      properties:
-        metadata:
-          type: object
-          properties:
-            total_results:
-              type: integer
-            total_companies:
-              type: integer
-            truncated_results:
-              type: integer
-            truncated_companies:
-              type: integer
-            credits_charged:
-              type: integer
-            companies_already_paid:
-              type: integer
-            credits_remaining:
-              type: integer
-              description: Credits the account can still spend after this call. Absent for callers that are not metered.
-            credits_allowance:
-              type: integer
-              description: 'What credits_remaining is measured against: the monthly allowance, or Free''s one-time grant.'
-            next_cursor:
-              type: string
-              nullable: true
-            as_of:
-              type: string
-              nullable: true
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TechCompany'
-    TechnologyFound:
-      type: object
-      properties:
-        technology:
-          $ref: '#/components/schemas/Technology'
-        confidence:
-          type: string
-          enum:
-          - high
-          - medium
-          - low
-          description: high = confirmed, medium = likely, low = mentioned.
-        tier:
-          type: string
-          enum:
-          - confirmed
-          - likely
-          - mentioned
-        jobs:
-          type: integer
-          description: Postings that name the technology.
-        jobs_last_7_days:
-          type: integer
-        jobs_last_30_days:
-          type: integer
-        jobs_last_180_days:
-          type: integer
-        first_date_found:
-          type: string
-          format: date
-          nullable: true
-        last_date_found:
-          type: string
-          format: date
-          nullable: true
-        rank_within_category:
-          type: integer
-          nullable: true
-        relative_occurrence_within_category:
-          type: number
-          nullable: true
-        required_jobs:
-          type: integer
-        preferred_jobs:
-          type: integer
-        mentioned_jobs:
-          type: integer
-        recency:
-          type: string
-          enum:
-          - active
-          - fading
-          - historical
-        share:
-          type: number
-          nullable: true
-          description: Share of the company's postings that name the technology.
-        occupations:
-          type: array
-          items:
-            type: string
-          description: ISCO-08 codes of the roles that name it.
-        countries:
-          type: array
-          items:
-            type: string
-    RateLimitErrorResponse:
-      type: object
-      required:
-      - error
-      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
-      properties:
-        error:
-          type: string
-          description: 'Human-readable message: "Rate limit exceeded".'
     CompanyTechnologiesResponse:
       type: object
       properties:
@@ -364,64 +255,6 @@ components:
         num_technologies:
           type: integer
         data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TechnologyFound'
-    TechCompany:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-          nullable: true
-        domain:
-          type: string
-          nullable: true
-        url:
-          type: string
-          nullable: true
-        logo:
-          type: string
-          nullable: true
-        country_code:
-          type: string
-          nullable: true
-        employee_count:
-          type: integer
-          nullable: true
-        employee_count_range:
-          type: string
-          nullable: true
-        founded_year:
-          type: integer
-          nullable: true
-        annual_revenue_usd:
-          type: number
-          nullable: true
-        industry:
-          type: string
-          nullable: true
-        linkedin_url:
-          type: string
-          nullable: true
-        num_jobs:
-          type: integer
-        num_jobs_found:
-          type: integer
-        num_jobs_last_30_days:
-          type: integer
-        num_technologies:
-          type: integer
-        technology_slugs:
-          type: array
-          items:
-            type: string
-        technology_names:
-          type: array
-          items:
-            type: string
-        technologies_found:
           type: array
           items:
             $ref: '#/components/schemas/TechnologyFound'
@@ -584,29 +417,6 @@ components:
               - string
               - 'null'
               description: Legal Entity Identifier (ISO 17442), 20 characters.
-    Technology:
-      type: object
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        category:
-          type: string
-          nullable: true
-        category_slug:
-          type: string
-          nullable: true
-        parent_category:
-          type: string
-          nullable: true
-        kind:
-          type: string
-          nullable: true
-          description: product, methodology, certification or standard.
-        logo:
-          type: string
-          nullable: true
     CompanySearchRequest:
       type: object
       additionalProperties: false
@@ -704,6 +514,196 @@ components:
             posted_at_max_age_days:
               type: integer
               minimum: 1
+    CompanySearchResponse:
+      type: object
+      properties:
+        metadata:
+          type: object
+          properties:
+            total_results:
+              type: integer
+            total_companies:
+              type: integer
+            truncated_results:
+              type: integer
+            truncated_companies:
+              type: integer
+            credits_charged:
+              type: integer
+            companies_already_paid:
+              type: integer
+            credits_remaining:
+              type: integer
+              description: Credits the account can still spend after this call. Absent for callers that are not metered.
+            credits_allowance:
+              type: integer
+              description: 'What credits_remaining is measured against: the monthly allowance, or Free''s one-time grant.'
+            next_cursor:
+              type: string
+              nullable: true
+            as_of:
+              type: string
+              nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechCompany'
+    TechCompany:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        domain:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        logo:
+          type: string
+          nullable: true
+        country_code:
+          type: string
+          nullable: true
+        employee_count:
+          type: integer
+          nullable: true
+        employee_count_range:
+          type: string
+          nullable: true
+        founded_year:
+          type: integer
+          nullable: true
+        annual_revenue_usd:
+          type: number
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+        linkedin_url:
+          type: string
+          nullable: true
+        num_jobs:
+          type: integer
+        num_jobs_found:
+          type: integer
+        num_jobs_last_30_days:
+          type: integer
+        num_technologies:
+          type: integer
+        technology_slugs:
+          type: array
+          items:
+            type: string
+        technology_names:
+          type: array
+          items:
+            type: string
+        technologies_found:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechnologyFound'
+    Technology:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        category_slug:
+          type: string
+          nullable: true
+        parent_category:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+          description: product, methodology, certification or standard.
+        logo:
+          type: string
+          nullable: true
+    TechnologyFound:
+      type: object
+      properties:
+        technology:
+          $ref: '#/components/schemas/Technology'
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+          description: high = confirmed, medium = likely, low = mentioned.
+        tier:
+          type: string
+          enum:
+          - confirmed
+          - likely
+          - mentioned
+        jobs:
+          type: integer
+          description: Postings that name the technology.
+        jobs_last_7_days:
+          type: integer
+        jobs_last_30_days:
+          type: integer
+        jobs_last_180_days:
+          type: integer
+        first_date_found:
+          type: string
+          format: date
+          nullable: true
+        last_date_found:
+          type: string
+          format: date
+          nullable: true
+        rank_within_category:
+          type: integer
+          nullable: true
+        relative_occurrence_within_category:
+          type: number
+          nullable: true
+        required_jobs:
+          type: integer
+        preferred_jobs:
+          type: integer
+        mentioned_jobs:
+          type: integer
+        recency:
+          type: string
+          enum:
+          - active
+          - fading
+          - historical
+        share:
+          type: number
+          nullable: true
+          description: Share of the company's postings that name the technology.
+        occupations:
+          type: array
+          items:
+            type: string
+          description: ISCO-08 codes of the roles that name it.
+        countries:
+          type: array
+          items:
+            type: string
+    RateLimitErrorResponse:
+      type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      properties:
+        error:
+          type: string
+          description: 'Human-readable message: "Rate limit exceeded".'
   parameters:
     IdempotencyKey:
       name: Idempotency-Key

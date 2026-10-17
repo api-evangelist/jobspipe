@@ -329,43 +329,6 @@ components:
         message:
           type: string
           description: Additional detail. Present on 402 quota responses; other errors carry only error.
-    TechnologyCompany:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-          nullable: true
-        domain:
-          type: string
-          nullable: true
-        url:
-          type: string
-          nullable: true
-        logo:
-          type: string
-          nullable: true
-        tier:
-          type: string
-          enum:
-          - confirmed
-          - likely
-          - mentioned
-        confidence:
-          type: string
-          enum:
-          - high
-          - medium
-          - low
-        jobs:
-          type: integer
-        first_date_found:
-          type: string
-          nullable: true
-        last_date_found:
-          type: string
-          nullable: true
     RateLimitErrorResponse:
       type: object
       required:
@@ -375,6 +338,38 @@ components:
         error:
           type: string
           description: 'Human-readable message: "Rate limit exceeded".'
+    TechnologyListResponse:
+      type: object
+      properties:
+        as_of:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          properties:
+            total_results:
+              type: integer
+            limit:
+              type: integer
+            page:
+              type: integer
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              technology:
+                $ref: '#/components/schemas/Technology'
+              companies:
+                type: integer
+              jobs:
+                type: integer
+              first_date_found:
+                type: string
+                nullable: true
+              last_date_found:
+                type: string
+                nullable: true
     TechnologyDetailResponse:
       type: object
       properties:
@@ -433,38 +428,6 @@ components:
                 description: Companies with a posting naming it in this month.
               jobs:
                 type: integer
-    TechnologyListResponse:
-      type: object
-      properties:
-        as_of:
-          type: string
-          nullable: true
-        metadata:
-          type: object
-          properties:
-            total_results:
-              type: integer
-            limit:
-              type: integer
-            page:
-              type: integer
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              technology:
-                $ref: '#/components/schemas/Technology'
-              companies:
-                type: integer
-              jobs:
-                type: integer
-              first_date_found:
-                type: string
-                nullable: true
-              last_date_found:
-                type: string
-                nullable: true
     Technology:
       type: object
       properties:
@@ -486,6 +449,43 @@ components:
           nullable: true
           description: product, methodology, certification or standard.
         logo:
+          type: string
+          nullable: true
+    TechnologyCompany:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        domain:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        logo:
+          type: string
+          nullable: true
+        tier:
+          type: string
+          enum:
+          - confirmed
+          - likely
+          - mentioned
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+        jobs:
+          type: integer
+        first_date_found:
+          type: string
+          nullable: true
+        last_date_found:
           type: string
           nullable: true
   securitySchemes:

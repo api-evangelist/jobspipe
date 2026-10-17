@@ -96,15 +96,21 @@ components:
         message:
           type: string
           description: Additional detail. Present on 402 quota responses; other errors carry only error.
-    RateLimitErrorResponse:
+    StackScanRequest:
       type: object
       required:
-      - error
-      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      - domain
       properties:
-        error:
+        domain:
           type: string
-          description: 'Human-readable message: "Rate limit exceeded".'
+          description: The domain to scan, e.g. stripe.com.
+        mode:
+          type: string
+          enum:
+          - auto
+          - html
+          - render
+          description: Optional scan mode. Defaults to auto.
     DetectedTech:
       type: object
       description: A technology detected on the scanned domain.
@@ -174,21 +180,6 @@ components:
         oss:
           type: boolean
           description: True if open source.
-    StackScanRequest:
-      type: object
-      required:
-      - domain
-      properties:
-        domain:
-          type: string
-          description: The domain to scan, e.g. stripe.com.
-        mode:
-          type: string
-          enum:
-          - auto
-          - html
-          - render
-          description: Optional scan mode. Defaults to auto.
     StackScanResponse:
       type: object
       required:
@@ -216,15 +207,15 @@ components:
           items:
             $ref: '#/components/schemas/DetectedTech'
           description: The technologies detected on the domain.
-  parameters:
-    IdempotencyKey:
-      name: Idempotency-Key
-      in: header
-      required: false
-      schema:
-        type: string
-        maxLength: 255
-      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
+    RateLimitErrorResponse:
+      type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      properties:
+        error:
+          type: string
+          description: 'Human-readable message: "Rate limit exceeded".'
   headers:
     Deprecation:
       description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 9745 date of when the endpoint was or will be deprecated. Absent on current endpoints.
@@ -234,6 +225,15 @@ components:
       description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 8594 timestamp after which the endpoint stops working - at least 6 months after the Deprecation date. Absent on current endpoints.
       schema:
         type: string
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
   securitySchemes:
     apiKey:
       type: http

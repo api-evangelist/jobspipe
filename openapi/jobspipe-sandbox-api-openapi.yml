@@ -579,89 +579,6 @@ components:
           - string
           - 'null'
           description: The language the posting text is written in, as a lowercase ISO 639-1 code, e.g. "en", "sv", "de". The language of the posting, not of the country it sits in. Null until the posting has been labelled.
-    JobSearchResponse:
-      type: object
-      required:
-      - metadata
-      - data
-      properties:
-        metadata:
-          type: object
-          description: Counts, the pagination cursor, and what the call cost.
-          properties:
-            total_results:
-              type:
-              - integer
-              - 'null'
-            truncated_results:
-              type: integer
-            total_companies:
-              type:
-              - integer
-              - 'null'
-              description: 'Always null: JobsPipe does not count distinct companies. Kept for TheirStack compatibility.'
-            truncated_companies:
-              type: integer
-              description: Always 0, under the same rules as total_companies.
-            next_cursor:
-              type:
-              - string
-              - 'null'
-            credits_charged:
-              type: integer
-              description: 'Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC), plus technologies_credits_charged when include_technologies was set. Absent for callers that are not metered.'
-            jobs_already_paid:
-              type: integer
-              description: Jobs in data that cost nothing because the account already paid for them this calendar month. Without include_technologies, credits_charged plus jobs_already_paid equals the number of jobs returned.
-            technologies_credits_charged:
-              type: integer
-              description: 'Present only with include_technologies. The part of credits_charged spent on technologies: 1 per returned job that names at least one technology and whose technologies the account had not already paid for this calendar month.'
-            technologies_already_paid:
-              type: integer
-              description: Present only with include_technologies. Jobs whose technologies cost nothing because the account already paid for them this calendar month.
-            credits_remaining:
-              type: integer
-              description: 'Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered.'
-            credits_allowance:
-              type: integer
-              description: 'What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered.'
-            field_coverage:
-              type: object
-              description: 'For each filter the request used that reads a partially filled field: the share (0-100) of active postings from the last 30 days carrying it, overall and per source.'
-              additionalProperties:
-                type: object
-                properties:
-                  field:
-                    type: string
-                  filled_pct:
-                    type: number
-                  by_source:
-                    type: object
-                    additionalProperties:
-                      type: number
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Job'
-          description: The page of matching job postings.
-    JobSource:
-      type: object
-      description: One board a posting was seen on.
-      properties:
-        provider:
-          type: string
-          description: Collector source the posting was seen on, e.g. linkedin, indeed.
-        url:
-          type:
-          - string
-          - 'null'
-          description: The posting's URL on that source.
-        seen_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the posting was seen on that source.
     CompanyObject:
       type: object
       description: Structured details about the hiring company. Every field is independently optional.
@@ -821,76 +738,71 @@ components:
               - string
               - 'null'
               description: Legal Entity Identifier (ISO 17442), 20 characters.
-    JobTechnology:
+    JobSearchResponse:
       type: object
-      description: 'One technology a posting names, graded. Beta: served while the per-job technologies flag is on.'
       required:
-      - slug
-      - name
-      - kind
-      - category
-      - parent_category
-      - logo
-      - strength
-      - confidence
-      - sections
-      - in_title
-      - terms
-      - terms_cs
+      - metadata
+      - data
       properties:
-        slug:
-          type: string
-          description: Taxonomy slug, e.g. "snowflake" or ".net".
-        name:
-          type: string
-          description: Display name, e.g. "Snowflake".
-        kind:
-          type: string
-          description: product, language, framework, methodology, certification or standard.
-        category:
-          type: string
-          description: e.g. "Databases". Empty string when unknown.
-        parent_category:
-          type: string
-          description: e.g. "Software and tools". Empty string when unknown.
-        logo:
-          type:
-          - string
-          - 'null'
-          format: uri
-          description: Absolute URL of the technology's logo; null when there is none.
-        strength:
-          type: string
-          enum:
-          - required
-          - preferred
-          - mentioned
-          description: required = the posting asks for it; preferred = a nice-to-have; mentioned = named without being asked for. The strongest reading of the posting.
-        confidence:
-          type: string
-          enum:
-          - high
-          - medium
-          - low
-          description: high = independent checks agree the posting names it; medium = required or in the title; low = otherwise.
-        sections:
+        metadata:
+          type: object
+          description: Counts, the pagination cursor, and what the call cost.
+          properties:
+            total_results:
+              type:
+              - integer
+              - 'null'
+            truncated_results:
+              type: integer
+            total_companies:
+              type:
+              - integer
+              - 'null'
+              description: 'Always null: JobsPipe does not count distinct companies. Kept for TheirStack compatibility.'
+            truncated_companies:
+              type: integer
+              description: Always 0, under the same rules as total_companies.
+            next_cursor:
+              type:
+              - string
+              - 'null'
+            credits_charged:
+              type: integer
+              description: 'Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC), plus technologies_credits_charged when include_technologies was set. Absent for callers that are not metered.'
+            jobs_already_paid:
+              type: integer
+              description: Jobs in data that cost nothing because the account already paid for them this calendar month. Without include_technologies, credits_charged plus jobs_already_paid equals the number of jobs returned.
+            technologies_credits_charged:
+              type: integer
+              description: 'Present only with include_technologies. The part of credits_charged spent on technologies: 1 per returned job that names at least one technology and whose technologies the account had not already paid for this calendar month.'
+            technologies_already_paid:
+              type: integer
+              description: Present only with include_technologies. Jobs whose technologies cost nothing because the account already paid for them this calendar month.
+            credits_remaining:
+              type: integer
+              description: 'Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered.'
+            credits_allowance:
+              type: integer
+              description: 'What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered.'
+            field_coverage:
+              type: object
+              description: 'For each filter the request used that reads a partially filled field: the share (0-100) of active postings from the last 30 days carrying it, overall and per source.'
+              additionalProperties:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  filled_pct:
+                    type: number
+                  by_source:
+                    type: object
+                    additionalProperties:
+                      type: number
+        data:
           type: array
           items:
-            type: string
-          description: Posting sections it appears in, e.g. ["requirements"].
-        in_title:
-          type: boolean
-          description: Whether the job title names it.
-        terms:
-          type: array
-          items:
-            type: string
-          description: Case-insensitive text forms that find the mention in description.
-        terms_cs:
-          type: array
-          items:
-            type: string
-          description: Case-sensitive text forms, e.g. "Go" or "R".
+            $ref: '#/components/schemas/Job'
+          description: The page of matching job postings.
     JobSearchRequest:
       type: object
       description: Optional filters for the job search. All fields are optional and combine with AND. Array filters ending in _or match any of their values; those ending in _not exclude their values. Unknown fields are rejected with HTTP 400.
@@ -1193,6 +1105,94 @@ components:
           type: boolean
           description: 'DEPRECATED and ignored. Preview mode has been removed: every search returns unmasked records and costs 1 credit per job not already paid for this month. Still accepted so existing integrations do not break, but it changes neither the response nor the price.'
       additionalProperties: false
+    JobSource:
+      type: object
+      description: One board a posting was seen on.
+      properties:
+        provider:
+          type: string
+          description: Collector source the posting was seen on, e.g. linkedin, indeed.
+        url:
+          type:
+          - string
+          - 'null'
+          description: The posting's URL on that source.
+        seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the posting was seen on that source.
+    JobTechnology:
+      type: object
+      description: 'One technology a posting names, graded. Beta: served while the per-job technologies flag is on.'
+      required:
+      - slug
+      - name
+      - kind
+      - category
+      - parent_category
+      - logo
+      - strength
+      - confidence
+      - sections
+      - in_title
+      - terms
+      - terms_cs
+      properties:
+        slug:
+          type: string
+          description: Taxonomy slug, e.g. "snowflake" or ".net".
+        name:
+          type: string
+          description: Display name, e.g. "Snowflake".
+        kind:
+          type: string
+          description: product, language, framework, methodology, certification or standard.
+        category:
+          type: string
+          description: e.g. "Databases". Empty string when unknown.
+        parent_category:
+          type: string
+          description: e.g. "Software and tools". Empty string when unknown.
+        logo:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the technology's logo; null when there is none.
+        strength:
+          type: string
+          enum:
+          - required
+          - preferred
+          - mentioned
+          description: required = the posting asks for it; preferred = a nice-to-have; mentioned = named without being asked for. The strongest reading of the posting.
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+          description: high = independent checks agree the posting names it; medium = required or in the title; low = otherwise.
+        sections:
+          type: array
+          items:
+            type: string
+          description: Posting sections it appears in, e.g. ["requirements"].
+        in_title:
+          type: boolean
+          description: Whether the job title names it.
+        terms:
+          type: array
+          items:
+            type: string
+          description: Case-insensitive text forms that find the mention in description.
+        terms_cs:
+          type: array
+          items:
+            type: string
+          description: Case-sensitive text forms, e.g. "Go" or "R".
   securitySchemes:
     apiKey:
       type: http
