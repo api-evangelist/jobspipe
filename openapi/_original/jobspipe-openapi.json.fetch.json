@@ -1,0 +1,12 @@
+{
+ "url": "https://api.jobspipe.dev/openapi.json",
+ "final": "https://api.jobspipe.dev/openapi.json",
+ "status": 200,
+ "content_type": "application/json",
+ "bytes": 200356,
+ "sha256": "7a381af1099d26eb8559be5d3a8a2fe7d7e22e37e8d12c13506b1f522cc87b19",
+ "fetched_at": "2026-10-19",
+ "fetched_by": "APIEvangelist-Harvest/1.0 (+https://apievangelist.com)",
+ "match": "byte-identical",
+ "note": "re-archived: the provider's current document replaced a stale archive (roadmap#793); the old files are in openapi/_superseded/2026-10-19-stale"
+}

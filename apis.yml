@@ -136,28 +136,6 @@ apis:
     url: json-schema/jobspipe-company-search-request-schema.json
   - type: JSONSchema
     url: json-schema/jobspipe-technology-detail-response-schema.json
-- aid: jobspipe:jobspipe-billing-api
-  name: JobsPipe Billing API
-  description: The Billing API from JobsPipe — 1 operation(s) for billing.
-  humanURL: https://docs.jobspipe.dev
-  baseURL: https://api.jobspipe.dev
-  tags:
-  - Billing
-  properties:
-  - type: OpenAPI
-    url: openapi/jobspipe-billing-api-openapi.yml
-  - type: JSONSchema
-    url: json-schema/jobspipe-job-search-request-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-agentic-search-response-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-company-object-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-job-search-response-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-company-search-request-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-technology-detail-response-schema.json
 - aid: jobspipe:jobspipe-companies-api
   name: JobsPipe Companies API
   description: The Companies API from JobsPipe — 3 operation(s) for companies.
@@ -259,28 +237,6 @@ apis:
   properties:
   - type: OpenAPI
     url: openapi/jobspipe-monitors-api-openapi.yml
-  - type: JSONSchema
-    url: json-schema/jobspipe-job-search-request-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-agentic-search-response-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-company-object-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-job-search-response-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-company-search-request-schema.json
-  - type: JSONSchema
-    url: json-schema/jobspipe-technology-detail-response-schema.json
-- aid: jobspipe:jobspipe-sandbox-api
-  name: JobsPipe Sandbox API
-  description: The Sandbox API from JobsPipe — 4 operation(s) for sandbox.
-  humanURL: https://docs.jobspipe.dev
-  baseURL: https://api.jobspipe.dev
-  tags:
-  - Sandbox
-  properties:
-  - type: OpenAPI
-    url: openapi/jobspipe-sandbox-api-openapi.yml
   - type: JSONSchema
     url: json-schema/jobspipe-job-search-request-schema.json
   - type: JSONSchema

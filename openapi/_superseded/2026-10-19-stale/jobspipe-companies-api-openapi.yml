@@ -1,0 +1,733 @@
+openapi: 3.2.0
+info:
+  title: JobsPipe Companies API
+  version: 1.0.0
+  description: JobsPipe is a unified data API over public job and technographic sources.
+  contact:
+    name: JobsPipe
+    url: https://jobspipe.dev
+    email: support@jobspipe.dev
+servers:
+- url: https://api.jobspipe.dev
+security:
+- apiKey: []
+tags:
+- name: Companies
+paths:
+  /v1/companies/{key}:
+    get:
+      operationId: getCompany
+      summary: Look up one company
+      x-consequence: read-only
+      x-side-effects: consumes 1 credit
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: 'Returns the enriched record for a single company: domain, website, logo, headcount, headquarters, description, LinkedIn page and founding year. The key may be a domain (stripe.com), a careers URL (https://careers.walmart.com/jobs), an email (andrew@stripe.com) or a company name (Stripe); a domain is matched on its registrable form, so a careers subdomain resolves to the same company as its root domain. Costs one credit per call. A company only appears here once it has been resolved from a job posting, so companies that have never posted a job are absent.'
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 253
+        description: 'Company domain, careers URL, email, or name. Example: "stripe.com".'
+      responses:
+        '200':
+          description: The company record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyObject'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No company matched the key, or the match was not confident enough to return.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+      tags:
+      - Companies
+  /v1/companies/search:
+    post:
+      operationId: searchCompaniesByTechnology
+      summary: Search companies by technology (beta)
+      tags:
+      - Companies
+      x-consequence: read-only
+      x-side-effects: consumes 1 credit per company returned that the account has not already paid for this calendar month
+      x-beta: true
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: Companies whose own job postings show they use the technologies asked for, with graded evidence per technology. Filter and field names follow the TheirStack company search, so an existing integration can switch by changing the base URL. Each technology carries a tier (confirmed, likely, mentioned; mapped to confidence high, medium, low), posting counts over 7, 30 and 180 days and overall, the first and last date a posting named it, and the share of the company's postings that name it. A domain, website and logo are returned only where two independent sources agree on the company's domain.
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanySearchRequest'
+            example:
+              company_technology_slug_and:
+              - snowflake
+              - dbt
+              company_country_code_or:
+              - DE
+              tier_min: likely
+              limit: 25
+      responses:
+        '200':
+          description: A page of companies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySearchResponse'
+        '400':
+          description: Invalid filters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found, or the beta is not enabled for this account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/companies/{key}/technologies:
+    get:
+      operationId: getCompanyTechnologies
+      summary: A company's tech stack from its job postings (beta)
+      tags:
+      - Companies
+      x-consequence: read-only
+      x-side-effects: consumes 1 credit
+      x-beta: true
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: Every technology one company's job postings name, graded by evidence tier, with counts and first and last dates. The key may be a domain or a company name. Costs one credit per call.
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 253
+        description: 'Company domain or name. Example: "stripe.com".'
+      - name: tier_min
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - confirmed
+          - likely
+          - mentioned
+          default: likely
+        description: 'Weakest evidence tier that counts. confirmed: two independent checks agree on at least one posting. likely: a required-strength mention or two postings. mentioned: a single mention.'
+      - name: kind
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Comma-separated kinds to keep, e.g. "product" or "product,certification".
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyTechnologiesResponse'
+        '400':
+          description: Invalid filters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found, or the beta is not enabled for this account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
+        message:
+          type: string
+          description: Additional detail. Present on 402 quota responses; other errors carry only error.
+    CompanyTechnologiesResponse:
+      type: object
+      properties:
+        as_of:
+          type: string
+          nullable: true
+        company:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+              nullable: true
+            domain:
+              type: string
+              nullable: true
+            url:
+              type: string
+              nullable: true
+            logo:
+              type: string
+              nullable: true
+            linkedin_url:
+              type: string
+              nullable: true
+        num_jobs:
+          type: integer
+        num_technologies:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechnologyFound'
+    CompanyObject:
+      type: object
+      description: Structured details about the hiring company. Every field is independently optional.
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        domain:
+          type:
+          - string
+          - 'null'
+          description: Bare website host, e.g. stripe.com.
+        url:
+          type:
+          - string
+          - 'null'
+          description: Company website.
+        logo:
+          type:
+          - string
+          - 'null'
+        employee_count:
+          type:
+          - integer
+          - 'null'
+          description: Headcount from the company's public profile or, failing that, from the employer's business record, which may be an estimate.
+        employee_count_min:
+          type:
+          - integer
+          - 'null'
+          description: Lower bound on headcount, when only a size band is known (e.g. 10000 for a "10,000+" company). Present for many companies that have no exact count.
+        linkedin_url:
+          type:
+          - string
+          - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+        location:
+          type:
+          - object
+          - 'null'
+          description: Company headquarters.
+          properties:
+            street:
+              type:
+              - string
+              - 'null'
+            city:
+              type:
+              - string
+              - 'null'
+            region:
+              type:
+              - string
+              - 'null'
+            postal_code:
+              type:
+              - string
+              - 'null'
+            country:
+              type:
+              - string
+              - 'null'
+        founded:
+          type:
+          - string
+          - 'null'
+          description: Year the company was founded, where known.
+        intelligence:
+          type:
+          - object
+          - 'null'
+          description: Revenue, legal identity and entity type of the employer, resolved for the posting's company in the posting's country. Null when no record exists or the record holds no finding, and always null on GET /v1/companies/{key}, which has no posting country to resolve against. Every field inside is independently null when it is not known.
+          properties:
+            revenue_usd:
+              type:
+              - number
+              - 'null'
+              description: Most recent known annual revenue, converted to US dollars. Null when no figure is known.
+            revenue_year:
+              type:
+              - integer
+              - 'null'
+              description: Fiscal year the revenue figure refers to.
+            revenue_source:
+              type:
+              - string
+              - 'null'
+              description: Short identifier of where the revenue figure came from, such as a business register, a securities filing or a company directory.
+            revenue_confidence:
+              type:
+              - string
+              - 'null'
+              enum:
+              - filed
+              - reported
+              - band
+              - derived
+              - extracted
+              - null
+              description: 'How the revenue figure was obtained, strongest first: filed = taken from the company''s statutory accounts; reported = stated by the company itself; band = only an estimated range is known; revenue_usd is a representative figure within it; derived = estimated from funding or valuation; extracted = read from public text about the company.'
+            entity_kind:
+              type:
+              - string
+              - 'null'
+              description: 'What kind of organisation the employer is: company, branch, public_sector or staffing_agency.'
+            founded_year:
+              type:
+              - integer
+              - 'null'
+              description: Year the legal entity was founded or registered.
+            headcount:
+              type:
+              - integer
+              - 'null'
+              description: Employee count as filed, registered or listed in a company directory. Can differ from employee_count, which comes from the company's public profile.
+            industry:
+              type:
+              - string
+              - 'null'
+              description: Industry as recorded for the legal entity or, where no record exists, the industry a company directory lists.
+            hq_region:
+              type:
+              - string
+              - 'null'
+              description: Region or state of the employer's headquarters, as written by the source (for example California), when known.
+            hq_city:
+              type:
+              - string
+              - 'null'
+              description: City of the employer's headquarters, when known.
+            revenue_low_usd:
+              type:
+              - number
+              - 'null'
+              description: 'Lower bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise.'
+            revenue_high_usd:
+              type:
+              - number
+              - 'null'
+              description: 'Upper bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise.'
+            headcount_low:
+              type:
+              - integer
+              - 'null'
+              description: 'Lower bound of the headcount: the range behind the figure when the source gave one; null otherwise.'
+            headcount_high:
+              type:
+              - integer
+              - 'null'
+              description: 'Upper bound of the headcount: the range behind the figure when the source gave one; null otherwise.'
+            lei:
+              type:
+              - string
+              - 'null'
+              description: Legal Entity Identifier (ISO 17442), 20 characters.
+    CompanySearchRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        company_technology_slug_or:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        company_technology_slug_and:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        company_technology_slug_not:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        expand_technology_slugs:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+        min_num_jobs_found:
+          type: integer
+          minimum: 1
+        company_country_code_or:
+          type: array
+          items:
+            type: string
+          description: Countries of the postings that name the technology.
+        company_domain_or:
+          type: array
+          items:
+            type: string
+        company_name_or:
+          type: array
+          items:
+            type: string
+        min_employee_count:
+          type: integer
+          minimum: 0
+        max_employee_count:
+          type: integer
+          minimum: 0
+        include_total_results:
+          type: boolean
+        order_by:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                enum:
+                - num_jobs
+                - num_jobs_found
+                - num_jobs_last_30_days
+                - employee_count
+              desc:
+                type: boolean
+                default: true
+            required:
+            - field
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 25
+        page:
+          type: integer
+          minimum: 0
+        offset:
+          type: integer
+          minimum: 0
+        cursor:
+          type: string
+        tier_min:
+          type: string
+          enum:
+          - confirmed
+          - likely
+          - mentioned
+          default: likely
+        job_filters:
+          type: object
+          description: Only job_country_code_or and posted_at_max_age_days are applied in the beta; other job filters are accepted and ignored.
+          properties:
+            job_country_code_or:
+              type: array
+              items:
+                type: string
+            posted_at_max_age_days:
+              type: integer
+              minimum: 1
+    CompanySearchResponse:
+      type: object
+      properties:
+        metadata:
+          type: object
+          properties:
+            total_results:
+              type: integer
+            total_companies:
+              type: integer
+            truncated_results:
+              type: integer
+            truncated_companies:
+              type: integer
+            credits_charged:
+              type: integer
+            companies_already_paid:
+              type: integer
+            credits_remaining:
+              type: integer
+              description: Credits the account can still spend after this call. Absent for callers that are not metered.
+            credits_allowance:
+              type: integer
+              description: 'What credits_remaining is measured against: the monthly allowance, or Free''s one-time grant.'
+            next_cursor:
+              type: string
+              nullable: true
+            as_of:
+              type: string
+              nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechCompany'
+    TechCompany:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        domain:
+          type: string
+          nullable: true
+        url:
+          type: string
+          nullable: true
+        logo:
+          type: string
+          nullable: true
+        country_code:
+          type: string
+          nullable: true
+        employee_count:
+          type: integer
+          nullable: true
+        employee_count_range:
+          type: string
+          nullable: true
+        founded_year:
+          type: integer
+          nullable: true
+        annual_revenue_usd:
+          type: number
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+        linkedin_url:
+          type: string
+          nullable: true
+        num_jobs:
+          type: integer
+        num_jobs_found:
+          type: integer
+        num_jobs_last_30_days:
+          type: integer
+        num_technologies:
+          type: integer
+        technology_slugs:
+          type: array
+          items:
+            type: string
+        technology_names:
+          type: array
+          items:
+            type: string
+        technologies_found:
+          type: array
+          items:
+            $ref: '#/components/schemas/TechnologyFound'
+    Technology:
+      type: object
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        category_slug:
+          type: string
+          nullable: true
+        parent_category:
+          type: string
+          nullable: true
+        kind:
+          type: string
+          nullable: true
+          description: product, methodology, certification or standard.
+        logo:
+          type: string
+          nullable: true
+    TechnologyFound:
+      type: object
+      properties:
+        technology:
+          $ref: '#/components/schemas/Technology'
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+          description: high = confirmed, medium = likely, low = mentioned.
+        tier:
+          type: string
+          enum:
+          - confirmed
+          - likely
+          - mentioned
+        jobs:
+          type: integer
+          description: Postings that name the technology.
+        jobs_last_7_days:
+          type: integer
+        jobs_last_30_days:
+          type: integer
+        jobs_last_180_days:
+          type: integer
+        first_date_found:
+          type: string
+          format: date
+          nullable: true
+        last_date_found:
+          type: string
+          format: date
+          nullable: true
+        rank_within_category:
+          type: integer
+          nullable: true
+        relative_occurrence_within_category:
+          type: number
+          nullable: true
+        required_jobs:
+          type: integer
+        preferred_jobs:
+          type: integer
+        mentioned_jobs:
+          type: integer
+        recency:
+          type: string
+          enum:
+          - active
+          - fading
+          - historical
+        share:
+          type: number
+          nullable: true
+          description: Share of the company's postings that name the technology.
+        occupations:
+          type: array
+          items:
+            type: string
+          description: ISCO-08 codes of the roles that name it.
+        countries:
+          type: array
+          items:
+            type: string
+    RateLimitErrorResponse:
+      type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      properties:
+        error:
+          type: string
+          description: 'Human-readable message: "Rate limit exceeded".'
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
+      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
+x-service-info:
+  categories:
+  - data
+  - jobs
+  - technographics
+  docs:
+    homepage: https://jobspipe.dev
+    apiReference: https://docs.jobspipe.dev
+    llms: https://jobspipe.dev/llms.txt

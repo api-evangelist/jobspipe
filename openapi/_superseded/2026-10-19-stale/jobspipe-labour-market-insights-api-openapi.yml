@@ -1,0 +1,887 @@
+openapi: 3.2.0
+info:
+  title: JobsPipe Labour Market Insights API
+  version: 1.0.0
+  description: JobsPipe is a unified data API over public job and technographic sources.
+  contact:
+    name: JobsPipe
+    url: https://jobspipe.dev
+    email: support@jobspipe.dev
+servers:
+- url: https://api.jobspipe.dev
+security:
+- apiKey: []
+tags:
+- name: Labour Market Insights
+paths:
+  /v1/insights/occupations:
+    get:
+      operationId: insightsOccupations
+      summary: Occupations ranked by live posting volume
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: ISCO-08 occupations present in the corpus, ranked by deduplicated active posting count within the window.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightOccupationsResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/occupations/{code}:
+    get:
+      operationId: insightsOccupationSnapshot
+      summary: Occupation snapshot
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Posting count, remote share, top hiring companies, common raw titles and country mix for one occupation.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{1,4}$
+        description: 'ISCO-08 occupation code: 4 digits exact, or 1-3 digits to roll up a group.'
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightSnapshotResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Unknown code, or no postings in the window.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/occupations/{code}/compensation:
+    get:
+      operationId: insightsCompensation
+      summary: Advertised compensation percentiles by occupation
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Percentiles (p10-p90) of advertised USD salaries for an occupation, from postings that state pay. Groups under 30 postings return suppressed:true with null percentiles.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{1,4}$
+        description: 'ISCO-08 occupation code: 4 digits exact, or 1-3 digits to roll up a group.'
+      - name: country
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^[A-Z]{2}$
+        description: ISO 3166-1 alpha-2 country filter.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightCompensationResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Unknown code, or no postings in the window.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/occupations/{code}/skills/top:
+    get:
+      operationId: insightsTopSkills
+      summary: Top skills by occupation
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Skill slugs ranked by the share of the occupation's postings mentioning them.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{1,4}$
+        description: 'ISCO-08 occupation code: 4 digits exact, or 1-3 digits to roll up a group.'
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightTopSkillsResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Unknown code, or no postings in the window.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/occupations/{code}/skills/trending:
+    get:
+      operationId: insightsTrendingSkillsByOccupation
+      summary: Trending skills by occupation
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Skills whose mention share grew or shrank versus the preceding window of equal length; the scan covers twice window_days.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{1,4}$
+        description: 'ISCO-08 occupation code: 4 digits exact, or 1-3 digits to roll up a group.'
+      - name: direction
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - up
+          - down
+          default: up
+        description: up returns growing skills, down returns declining skills.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightTrendingResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Unknown code, or no postings in the window.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/industries:
+    get:
+      operationId: insightsIndustries
+      summary: Industries ranked by live posting volume
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: ISIC Rev.4 divisions present in the corpus with deduplicated posting counts.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightIndustriesResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/industries/{division}/skills/trending:
+    get:
+      operationId: insightsTrendingSkillsByIndustry
+      summary: Trending skills by industry
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Skills growing or declining inside one ISIC division versus the preceding window.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: division
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^\d{2}$
+        description: ISIC Rev.4 division (2 digits).
+      - name: direction
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - up
+          - down
+          default: up
+        description: up returns growing skills, down returns declining skills.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightTrendingResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Unknown code, or no postings in the window.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/skills/{slug}/trend:
+    get:
+      operationId: insightsSkillTrend
+      summary: Skill demand trend
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Monthly mention-share series for one skill slug, plus the occupations and industries where its demand concentrates.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Canonical skill slug, e.g. python or machine-learning.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightSkillTrendResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/technology/ai-exposure:
+    get:
+      operationId: insightsAiExposure
+      summary: AI exposure by occupation or industry
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Share of postings requiring AI skills per group, with the median advertised salary premium of AI-skilled postings. Measured from live ads, not modeled.
+      parameters:
+      - name: window_days
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+        description: Look-back window over posting dates, in days.
+      - name: by
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - occupation
+          - industry
+        description: Group rows by ISCO occupation or ISIC division.
+      responses:
+        '200':
+          description: Computed insight, measured live from deduplicated job postings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightAiExposureResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+  /v1/insights/salary/benchmark:
+    post:
+      operationId: insightsSalaryBenchmark
+      summary: Salary benchmark
+      tags:
+      - Labour Market Insights
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      description: Advertised-salary percentiles for an occupation code or a title match, optionally filtered by country and seniority. Requires occupation_code or title.
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsightBenchmarkRequest'
+      responses:
+        '200':
+          description: Salary percentile table with sample count and confidence tier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightCompensationResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+components:
+  schemas:
+    InsightBenchmarkRequest:
+      type: object
+      description: Requires occupation_code or title.
+      properties:
+        occupation_code:
+          type: string
+          pattern: ^\d{1,4}$
+        title:
+          type: string
+          description: Title substring match, e.g. data engineer.
+        country:
+          type: string
+          pattern: ^[A-Z]{2}$
+        seniority:
+          type: string
+          enum:
+          - entry
+          - mid
+          - senior
+          - lead
+          - exec
+        window_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 90
+    ErrorResponse:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
+        message:
+          type: string
+          description: Additional detail. Present on 402 quota responses; other errors carry only error.
+    InsightTopSkillsResponse:
+      type: object
+      properties:
+        scope:
+          type: object
+        window_days:
+          type: integer
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              skill:
+                type: string
+              count:
+                type: integer
+              share:
+                type: number
+    InsightCompensationResponse:
+      type: object
+      properties:
+        occupation_code:
+          type: string
+          nullable: true
+        occupation_label:
+          type: string
+          nullable: true
+        window_days:
+          type: integer
+        country:
+          type: string
+          nullable: true
+        count:
+          type: integer
+          description: Postings with stated pay in scope.
+        currency:
+          type: string
+          enum:
+          - USD
+        percentiles:
+          type: object
+          nullable: true
+          properties:
+            p10:
+              type: number
+            p25:
+              type: number
+            p50:
+              type: number
+            p75:
+              type: number
+            p90:
+              type: number
+        confidence:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+          nullable: true
+        suppressed:
+          type: boolean
+          description: True when the sample is under 30 postings.
+    InsightTrendingResponse:
+      type: object
+      properties:
+        scope:
+          type: object
+        window_days:
+          type: integer
+        direction:
+          type: string
+          enum:
+          - up
+          - down
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              skill:
+                type: string
+              recent_count:
+                type: integer
+              prior_count:
+                type: integer
+              recent_share:
+                type: number
+              prior_share:
+                type: number
+              growth_pct:
+                type: number
+    InsightRankingItem:
+      type: object
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+          nullable: true
+        count:
+          type: integer
+        share:
+          type: number
+    InsightIndustriesResponse:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        industries:
+          type: array
+          items:
+            type: object
+            properties:
+              division:
+                type: string
+                description: ISIC Rev.4 division.
+              label:
+                type: string
+                nullable: true
+              count:
+                type: integer
+              share:
+                type: number
+    InsightOccupationsResponse:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        occupations:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: ISCO-08 occupation code.
+              label:
+                type: string
+                nullable: true
+              count:
+                type: integer
+              share:
+                type: number
+    InsightSkillTrendResponse:
+      type: object
+      properties:
+        skill:
+          type: string
+        window_days:
+          type: integer
+        series:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              mentions:
+                type: integer
+              total:
+                type: integer
+              share:
+                type: number
+        top_occupations:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+        top_industries:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+    InsightSnapshotResponse:
+      type: object
+      properties:
+        occupation_code:
+          type: string
+        occupation_label:
+          type: string
+          nullable: true
+        window_days:
+          type: integer
+        count:
+          type: integer
+        remote_share:
+          type: number
+        top_companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+        top_titles:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+        countries:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsightRankingItem'
+    InsightAiExposureResponse:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        by:
+          type: string
+          enum:
+          - occupation
+          - industry
+        rows:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              label:
+                type: string
+                nullable: true
+              count:
+                type: integer
+              ai_share:
+                type: number
+              ai_median_usd:
+                type: number
+                nullable: true
+              non_ai_median_usd:
+                type: number
+                nullable: true
+              premium_pct:
+                type: number
+                nullable: true
+    RateLimitErrorResponse:
+      type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      properties:
+        error:
+          type: string
+          description: 'Human-readable message: "Rate limit exceeded".'
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
+      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
+x-service-info:
+  categories:
+  - data
+  - jobs
+  - technographics
+  docs:
+    homepage: https://jobspipe.dev
+    apiReference: https://docs.jobspipe.dev
+    llms: https://jobspipe.dev/llms.txt

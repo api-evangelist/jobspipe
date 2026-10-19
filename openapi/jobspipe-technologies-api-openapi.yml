@@ -1,196 +1,437 @@
 openapi: 3.2.0
 info:
-  title: JobsPipe Technologies API
   version: 1.0.0
-  description: JobsPipe is a unified data API over public job and technographic sources.
-  contact:
-    name: JobsPipe
-    url: https://jobspipe.dev
-    email: support@jobspipe.dev
+  title: JobsPipe Technologies API
+  description: Every job posting, one API. Search live job postings from 30+ sources.
 servers:
 - url: https://api.jobspipe.dev
-security:
-- apiKey: []
+  description: Production
 tags:
 - name: Technologies
 paths:
   /v1/technologies:
     get:
       operationId: listTechnologies
-      summary: List technologies (beta)
+      security:
+      - bearerAuth: []
       tags:
       - Technologies
-      x-consequence: read-only
-      x-side-effects: consumes 1 credit
-      x-beta: true
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Technologies named in job postings, ranked by how many companies hire for them. Costs one credit per call.
+      summary: List technologies
+      description: Technologies named in job postings, ranked by how many companies hire for them, with company and posting counts. Filter by kind, category or posting country. Costs one credit per call.
       parameters:
-      - name: kind
-        in: query
-        required: false
-        schema:
+      - schema:
           type: string
-        description: Comma-separated kinds.
-      - name: category
-        in: query
+          maxLength: 200
+          pattern: ^[a-z_]+(,[a-z_]+)*$
         required: false
-        schema:
+        name: kind
+        in: query
+      - schema:
           type: string
-        description: Comma-separated category slugs.
-      - name: country
-        in: query
+          maxLength: 400
+          pattern: ^[a-z0-9-]+(,[a-z0-9-]+)*$
         required: false
-        schema:
+        name: category
+        in: query
+      - schema:
           type: string
-        description: Comma-separated ISO country codes of the postings.
-      - name: limit
-        in: query
+          maxLength: 200
+          pattern: ^[A-Za-z]{2}(,[A-Za-z]{2})*$
         required: false
-        schema:
+        name: country
+        in: query
+      - schema:
           type: integer
           minimum: 1
           maximum: 200
           default: 50
-      - name: page
-        in: query
         required: false
-        schema:
-          type: integer
+        name: limit
+        in: query
+      - schema:
+          type:
+          - integer
+          - 'null'
           minimum: 0
           default: 0
+        required: false
+        name: page
+        in: query
       responses:
         '200':
-          description: OK.
+          description: A page of technologies.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TechnologyListResponse'
+                type: object
+                properties:
+                  as_of:
+                    type:
+                    - string
+                    - 'null'
+                  metadata:
+                    type: object
+                    properties:
+                      total_results:
+                        type: integer
+                      limit:
+                        type: integer
+                      page:
+                        type: integer
+                    required:
+                    - total_results
+                    - limit
+                    - page
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        technology:
+                          type: object
+                          properties:
+                            slug:
+                              type: string
+                            name:
+                              type: string
+                            category:
+                              type:
+                              - string
+                              - 'null'
+                            category_slug:
+                              type:
+                              - string
+                              - 'null'
+                            parent_category:
+                              type:
+                              - string
+                              - 'null'
+                            kind:
+                              type:
+                              - string
+                              - 'null'
+                            logo:
+                              type:
+                              - string
+                              - 'null'
+                          required:
+                          - slug
+                          - name
+                          - category
+                          - category_slug
+                          - parent_category
+                          - kind
+                          - logo
+                        companies:
+                          type: integer
+                        jobs:
+                          type: integer
+                        first_date_found:
+                          type:
+                          - string
+                          - 'null'
+                        last_date_found:
+                          type:
+                          - string
+                          - 'null'
+                      required:
+                      - technology
+                      - companies
+                      - jobs
+                      - first_date_found
+                      - last_date_found
+                required:
+                - as_of
+                - metadata
+                - data
         '400':
-          description: Invalid filters.
+          description: Invalid parameters.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Missing or invalid API key.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monthly request quota exceeded.
+          description: Monthly credit quota exceeded.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  upgrade_url:
+                    type: string
+                    format: uri
+                  dashboard_url:
+                    type: string
+                    format: uri
+                  credits_used:
+                    type: integer
+                  credits_included:
+                    type: integer
+                required:
+                - error
+                - message
+                - upgrade_url
+                - dashboard_url
         '404':
-          description: Not found, or the beta is not enabled for this account.
+          description: Unknown technology.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '429':
-          description: Per-second rate limit exceeded.
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /v1/technologies/resolve:
+    post:
+      operationId: resolveTechnologies
+      security:
+      - bearerAuth: []
+      tags:
+      - Technologies
+      summary: Resolve names to technology slugs
+      description: 'Turn a list of technology or product names, or vendor domains, into the slugs the company search takes, each with how it matched and how many companies and postings carry evidence for it. A name we do not track answers match: none. Costs nothing.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                names:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 200
+                  minItems: 1
+                  maxItems: 2000
+                  description: Technology or product names as you have them, or vendor domains such as okta.com. Up to 2,000.
+              required:
+              - names
+              additionalProperties: false
+      responses:
+        '200':
+          description: One row per name, in the order sent.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RateLimitErrorResponse'
+                type: object
+                properties:
+                  as_of:
+                    type:
+                    - string
+                    - 'null'
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name as sent.
+                        slug:
+                          type:
+                          - string
+                          - 'null'
+                          description: The technology slug to search with, or null when the name is not tracked.
+                        technology_name:
+                          type:
+                          - string
+                          - 'null'
+                        match:
+                          type: string
+                          enum:
+                          - exact
+                          - alias
+                          - domain
+                          - prefix
+                          - none
+                          description: 'How the name matched: exact (the name itself), alias (a known alias once marketplace words are dropped), domain (a vendor''s domain), prefix (the name starts with the technology: check it), none (not tracked; no signal, not proof it is unused).'
+                        companies:
+                          type: integer
+                          description: Companies with any evidence for the technology.
+                        jobs:
+                          type: integer
+                          description: Postings that named it.
+                      required:
+                      - name
+                      - slug
+                      - technology_name
+                      - match
+                      - companies
+                      - jobs
+                required:
+                - as_of
+                - data
+        '400':
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '401':
+          description: Not signed in and no API key.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   /v1/technologies/export:
     get:
       operationId: exportTechnologies
-      summary: Export companies by technology (beta)
+      security:
+      - bearerAuth: []
       tags:
       - Technologies
-      x-consequence: read-only
-      x-side-effects: consumes 1 credit per call plus 1 per company in the file that the account has not already paid for this calendar month, settled once the data is ready and before the download starts
-      x-beta: true
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Downloads every company matching the company-search filters as CSV or JSON Lines, one line per company and technology, with the evidence tier, posting counts and first and last dates. Paid plans only. Up to 10,000 companies per file on Builder and Growth, 50,000 on Scale and above; without limit, a larger match is refused with the count. 1 credit per call plus 1 per company not already paid for this calendar month, so re-running an export costs only the call. The charge is settled once the data is ready, before the download starts; nothing is charged on a refusal. One export at a time per account. In CSV, text cells starting with = + - or @ are prefixed with ' so spreadsheets do not run them as formulas.
+      summary: Export companies by technology
+      description: Downloads every company matching the filters as CSV or JSON Lines, one line per company and technology. Builder package and above. Costs one credit per call plus one per company not already paid for this month, settled once the data is ready and before the download starts. One export at a time per account.
       parameters:
-      - name: company_technology_slug_or
-        in: query
+      - schema:
+          anyOf:
+          - type: string
+            maxLength: 700
+          - type: array
+            items:
+              type: string
+              maxLength: 700
+            maxItems: 100
+          description: Companies using ANY of these technologies (comma-separated or repeated, at most 10).
         required: false
-        schema:
-          type: string
-        description: Companies using ANY of these technologies. Comma-separated or repeated, at most 10.
-      - name: company_technology_slug_and
+        description: Companies using ANY of these technologies (comma-separated or repeated, at most 10).
+        name: company_technology_slug_or
         in: query
+      - schema:
+          anyOf:
+          - type: string
+            maxLength: 700
+          - type: array
+            items:
+              type: string
+              maxLength: 700
+            maxItems: 100
+          description: Companies using ALL of these technologies (comma-separated or repeated, at most 10).
         required: false
-        schema:
-          type: string
-        description: Companies using ALL of these technologies. Comma-separated or repeated, at most 10.
-      - name: company_technology_slug_not
+        description: Companies using ALL of these technologies (comma-separated or repeated, at most 10).
+        name: company_technology_slug_and
         in: query
+      - schema:
+          anyOf:
+          - type: string
+            maxLength: 700
+          - type: array
+            items:
+              type: string
+              maxLength: 700
+            maxItems: 100
+          description: Exclude companies with any evidence for these technologies, at any tier.
         required: false
-        schema:
-          type: string
-        description: Leave out companies with any evidence, at any tier, for these technologies.
-      - name: company_country_code_or
+        description: Exclude companies with any evidence for these technologies, at any tier.
+        name: company_technology_slug_not
         in: query
+      - schema:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: array
+            items:
+              type: string
+              maxLength: 200
+            maxItems: 100
+          description: Countries of the job postings that name the technology (ISO 3166-1 alpha-2).
         required: false
-        schema:
-          type: string
-        description: Comma-separated ISO country codes of the postings that name the technology.
-      - name: company_domain_or
+        description: Countries of the job postings that name the technology (ISO 3166-1 alpha-2).
+        name: company_country_code_or
         in: query
+      - schema:
+          anyOf:
+          - type: string
+            maxLength: 26000
+          - type: array
+            items:
+              type: string
+              maxLength: 26000
+            maxItems: 100
+          description: 'Comma-separated, or repeat the parameter. Example: siemens.com.'
         required: false
-        schema:
-          type: string
-        description: Comma-separated company domains.
-      - name: company_name_or
+        description: 'Comma-separated, or repeat the parameter. Example: siemens.com.'
+        name: company_domain_or
         in: query
+      - schema:
+          anyOf:
+          - type: string
+            maxLength: 21000
+          - type: array
+            items:
+              type: string
+              maxLength: 200
+            maxItems: 100
+          description: Company names. Repeat the parameter for several names; commas stay part of the name.
         required: false
-        schema:
-          type: string
-        description: A company name. Repeat the parameter for several; a comma stays part of the name.
-      - name: tier_min
+        description: Company names. Repeat the parameter for several names; commas stay part of the name.
+        name: company_name_or
         in: query
-        required: false
-        schema:
+      - schema:
           type: string
           enum:
           - confirmed
           - likely
           - mentioned
           default: likely
-        description: 'Weakest evidence tier that counts. confirmed: two independent checks agree on at least one posting. likely: a required-strength mention or two postings. mentioned: a single mention.'
-      - name: min_num_jobs_found
-        in: query
+          description: 'Weakest evidence tier that counts: confirmed, likely (the default) or mentioned.'
         required: false
-        schema:
+        description: 'Weakest evidence tier that counts: confirmed, likely (the default) or mentioned.'
+        name: tier_min
+        in: query
+      - schema:
           type: integer
           minimum: 1
-      - name: format
-        in: query
         required: false
-        schema:
+        name: min_num_jobs_found
+        in: query
+      - schema:
           type: string
           enum:
           - csv
           - jsonl
           default: csv
-      - name: limit
-        in: query
+          description: csv (the default) or jsonl.
         required: false
-        schema:
+        description: csv (the default) or jsonl.
+        name: format
+        in: query
+      - schema:
           type: integer
           minimum: 1
-        description: Export at most this many companies, up to the plan's cap.
+          maximum: 1000000
+          description: Export at most this many companies. Without it, a match over the plan's cap is refused.
+        required: false
+        description: Export at most this many companies. Without it, a match over the plan's cap is refused.
+        name: limit
+        in: query
       responses:
         '200':
-          description: The export, streamed as an attachment. One line per company and technology; CSV has a header row.
+          description: The export, streamed as an attachment.
           headers:
-            Content-Disposition:
-              schema:
-                type: string
-              description: attachment; filename=technologies-<date>.csv or .jsonl
             X-Credits-Charged:
               schema:
                 type: integer
@@ -202,7 +443,7 @@ paths:
             X-Total-Companies:
               schema:
                 type: integer
-              description: Companies in the file.
+              description: Companies in the export.
           content:
             text/csv:
               schema:
@@ -211,298 +452,367 @@ paths:
               schema:
                 type: string
         '400':
-          description: 'Invalid parameters, or export_too_large: the search matches more companies than the plan''s cap (total_companies and max_rows say by how much).'
+          description: Invalid parameters.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Missing or invalid API key.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: A free plan (exports need a paid plan), or not enough credits left this month for the call plus the companies not yet paid for (credits_required, credits_remaining).
+          description: A Free or Seeker plan, or not enough credits left this month for the export.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  upgrade_url:
+                    type: string
+                    format: uri
+                  dashboard_url:
+                    type: string
+                    format: uri
+                  credits_used:
+                    type: integer
+                  credits_included:
+                    type: integer
+                required:
+                - error
         '404':
-          description: Not found, or the beta is not enabled for this account.
+          description: Unknown technology.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '409':
-          description: 'export_in_progress: another export for this account is being prepared.'
+          description: Another export for this account is being prepared (export_in_progress).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '429':
-          description: Per-second rate limit exceeded.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RateLimitErrorResponse'
-        '502':
-          description: The data could not be prepared. Nothing is charged.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '503':
-          description: 'export_billing_unavailable: credits could not be checked. Nothing is charged.'
+          description: Credits could not be checked; nothing was charged (export_billing_unavailable).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   /v1/technologies/{slug}:
     get:
       operationId: getTechnology
-      summary: One technology (beta)
+      security:
+      - bearerAuth: []
       tags:
       - Technologies
-      x-consequence: read-only
-      x-side-effects: consumes 1 credit
-      x-beta: true
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
+      summary: One technology
       description: Companies by evidence tier, top countries and occupations, the top companies, companies that recently started hiring for it, and a monthly adoption series. Costs one credit per call.
       parameters:
-      - name: slug
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
-        description: Technology slug, e.g. "snowflake".
+          minLength: 1
+          maxLength: 64
+          pattern: ^\.?[a-z0-9][a-z0-9+#./-]*$
+        required: true
+        name: slug
+        in: path
       responses:
         '200':
-          description: OK.
+          description: The technology.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TechnologyDetailResponse'
+                type: object
+                properties:
+                  as_of:
+                    type:
+                    - string
+                    - 'null'
+                  technology:
+                    type: object
+                    properties:
+                      slug:
+                        type: string
+                      name:
+                        type: string
+                      category:
+                        type:
+                        - string
+                        - 'null'
+                      category_slug:
+                        type:
+                        - string
+                        - 'null'
+                      parent_category:
+                        type:
+                        - string
+                        - 'null'
+                      kind:
+                        type:
+                        - string
+                        - 'null'
+                      logo:
+                        type:
+                        - string
+                        - 'null'
+                    required:
+                    - slug
+                    - name
+                    - category
+                    - category_slug
+                    - parent_category
+                    - kind
+                    - logo
+                  companies:
+                    type: integer
+                  jobs:
+                    type: integer
+                  first_date_found:
+                    type:
+                    - string
+                    - 'null'
+                  last_date_found:
+                    type:
+                    - string
+                    - 'null'
+                  companies_by_tier:
+                    type: object
+                    properties:
+                      confirmed:
+                        type: integer
+                      likely:
+                        type: integer
+                      mentioned:
+                        type: integer
+                    required:
+                    - confirmed
+                    - likely
+                    - mentioned
+                  top_countries:
+                    type: array
+                    items:
+                      type: string
+                  top_occupations:
+                    type: array
+                    items:
+                      type: string
+                  top_companies:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type:
+                          - string
+                          - 'null'
+                        domain:
+                          type:
+                          - string
+                          - 'null'
+                        url:
+                          type:
+                          - string
+                          - 'null'
+                        logo:
+                          type:
+                          - string
+                          - 'null'
+                        tier:
+                          type: string
+                          enum:
+                          - confirmed
+                          - likely
+                          - mentioned
+                        confidence:
+                          type: string
+                          enum:
+                          - high
+                          - medium
+                          - low
+                        jobs:
+                          type: integer
+                        first_date_found:
+                          type:
+                          - string
+                          - 'null'
+                        last_date_found:
+                          type:
+                          - string
+                          - 'null'
+                      required:
+                      - id
+                      - name
+                      - domain
+                      - url
+                      - logo
+                      - tier
+                      - confidence
+                      - jobs
+                      - first_date_found
+                      - last_date_found
+                  recently_adopted:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type:
+                          - string
+                          - 'null'
+                        domain:
+                          type:
+                          - string
+                          - 'null'
+                        url:
+                          type:
+                          - string
+                          - 'null'
+                        logo:
+                          type:
+                          - string
+                          - 'null'
+                        tier:
+                          type: string
+                          enum:
+                          - confirmed
+                          - likely
+                          - mentioned
+                        confidence:
+                          type: string
+                          enum:
+                          - high
+                          - medium
+                          - low
+                        jobs:
+                          type: integer
+                        first_date_found:
+                          type:
+                          - string
+                          - 'null'
+                        last_date_found:
+                          type:
+                          - string
+                          - 'null'
+                      required:
+                      - id
+                      - name
+                      - domain
+                      - url
+                      - logo
+                      - tier
+                      - confidence
+                      - jobs
+                      - first_date_found
+                      - last_date_found
+                  monthly_adoption:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        month:
+                          type: string
+                        companies:
+                          type: integer
+                          description: Companies whose first posting naming the technology is in this month.
+                        active_companies:
+                          type: integer
+                          description: Companies with a posting naming it in this month.
+                        jobs:
+                          type: integer
+                          description: Postings naming it in this month.
+                      required:
+                      - month
+                      - companies
+                      - active_companies
+                      - jobs
+                required:
+                - as_of
+                - technology
+                - companies
+                - jobs
+                - first_date_found
+                - last_date_found
+                - companies_by_tier
+                - top_countries
+                - top_occupations
+                - top_companies
+                - recently_adopted
+                - monthly_adoption
         '400':
-          description: Invalid filters.
+          description: Invalid parameters.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Missing or invalid API key.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monthly request quota exceeded.
+          description: Monthly credit quota exceeded.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  upgrade_url:
+                    type: string
+                    format: uri
+                  dashboard_url:
+                    type: string
+                    format: uri
+                  credits_used:
+                    type: integer
+                  credits_included:
+                    type: integer
+                required:
+                - error
+                - message
+                - upgrade_url
+                - dashboard_url
         '404':
-          description: Not found, or the beta is not enabled for this account.
+          description: Unknown technology.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '429':
-          description: Per-second rate limit exceeded.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RateLimitErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
 components:
-  schemas:
-    ErrorResponse:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: string
-          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
-        message:
-          type: string
-          description: Additional detail. Present on 402 quota responses; other errors carry only error.
-    RateLimitErrorResponse:
-      type: object
-      required:
-      - error
-      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
-      properties:
-        error:
-          type: string
-          description: 'Human-readable message: "Rate limit exceeded".'
-    TechnologyListResponse:
-      type: object
-      properties:
-        as_of:
-          type: string
-          nullable: true
-        metadata:
-          type: object
-          properties:
-            total_results:
-              type: integer
-            limit:
-              type: integer
-            page:
-              type: integer
-        data:
-          type: array
-          items:
-            type: object
-            properties:
-              technology:
-                $ref: '#/components/schemas/Technology'
-              companies:
-                type: integer
-              jobs:
-                type: integer
-              first_date_found:
-                type: string
-                nullable: true
-              last_date_found:
-                type: string
-                nullable: true
-    TechnologyDetailResponse:
-      type: object
-      properties:
-        as_of:
-          type: string
-          nullable: true
-        technology:
-          $ref: '#/components/schemas/Technology'
-        companies:
-          type: integer
-        jobs:
-          type: integer
-        first_date_found:
-          type: string
-          nullable: true
-        last_date_found:
-          type: string
-          nullable: true
-        companies_by_tier:
-          type: object
-          properties:
-            confirmed:
-              type: integer
-            likely:
-              type: integer
-            mentioned:
-              type: integer
-        top_countries:
-          type: array
-          items:
-            type: string
-        top_occupations:
-          type: array
-          items:
-            type: string
-        top_companies:
-          type: array
-          items:
-            $ref: '#/components/schemas/TechnologyCompany'
-        recently_adopted:
-          type: array
-          items:
-            $ref: '#/components/schemas/TechnologyCompany'
-        monthly_adoption:
-          type: array
-          items:
-            type: object
-            properties:
-              month:
-                type: string
-              companies:
-                type: integer
-                description: Companies whose first posting naming it is in this month.
-              active_companies:
-                type: integer
-                description: Companies with a posting naming it in this month.
-              jobs:
-                type: integer
-    Technology:
-      type: object
-      properties:
-        slug:
-          type: string
-        name:
-          type: string
-        category:
-          type: string
-          nullable: true
-        category_slug:
-          type: string
-          nullable: true
-        parent_category:
-          type: string
-          nullable: true
-        kind:
-          type: string
-          nullable: true
-          description: product, methodology, certification or standard.
-        logo:
-          type: string
-          nullable: true
-    TechnologyCompany:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-          nullable: true
-        domain:
-          type: string
-          nullable: true
-        url:
-          type: string
-          nullable: true
-        logo:
-          type: string
-          nullable: true
-        tier:
-          type: string
-          enum:
-          - confirmed
-          - likely
-          - mentioned
-        confidence:
-          type: string
-          enum:
-          - high
-          - medium
-          - low
-        jobs:
-          type: integer
-        first_date_found:
-          type: string
-          nullable: true
-        last_date_found:
-          type: string
-          nullable: true
   securitySchemes:
-    apiKey:
+    bearerAuth:
       type: http
       scheme: bearer
-      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
-    oidc:
-      type: openIdConnect
-      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
-      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
-x-service-info:
-  categories:
-  - data
-  - jobs
-  - technographics
-  docs:
-    homepage: https://jobspipe.dev
-    apiReference: https://docs.jobspipe.dev
-    llms: https://jobspipe.dev/llms.txt
+      description: Your JobsPipe API key (starts with jp_live_).

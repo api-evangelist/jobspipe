@@ -1,172 +1,185 @@
 openapi: 3.2.0
 info:
-  title: JobsPipe Monitors API
   version: 1.0.0
-  description: JobsPipe is a unified data API over public job and technographic sources.
-  contact:
-    name: JobsPipe
-    url: https://jobspipe.dev
-    email: support@jobspipe.dev
+  title: JobsPipe Monitors API
+  description: Every job posting, one API. Search live job postings from 30+ sources.
 servers:
 - url: https://api.jobspipe.dev
-security:
-- apiKey: []
+  description: Production
 tags:
 - name: Monitors
 paths:
   /v1/monitors:
     post:
       operationId: createMonitor
+      tags:
+      - Monitors
       summary: Create a monitor
-      x-consequence: reversible
-      x-side-effects: creates a monitor - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Monitors up to 1,000 job ids (more can be added), sending job.closed to one of your webhook endpoints until the monitor expires (1-365 days, default 90). The ids are looked up, so the response also says, for free, which are already closed and which match nothing; neither is added. Paid plans only.
+      description: Monitors a list of records and sends their events to one of your webhooks until the monitor expires. A job monitor sends job.closed when a job in it closes. The ids are looked up, so the response also says, for free, which are already closed and which match nothing; neither is added. Costs no credits.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-              - type
-              - ids
-              - webhook_id
               properties:
                 type:
                   type: string
-                  enum:
-                  - job
+                  description: What the ids are. "job" today.
                 ids:
                   type: array
                   items:
                     type: string
+                    minLength: 1
+                    maxLength: 512
                   minItems: 1
                   maxItems: 1000
+                  description: Record ids as search returned them, up to 1000 per request.
                 events:
                   type: array
                   items:
                     type: string
-                    enum:
-                    - job.closed
-                  description: 'Default: every event of the type.'
+                  description: 'Events to send. Default: every event of the type ("job.closed").'
                 webhook_id:
                   type: string
                   format: uuid
+                  description: One of your webhooks, from /api/webhooks.
                 expires_in_days:
-                  type: integer
-                  minimum: 1
-                  maximum: 365
-                  default: 90
+                  type: number
+                  description: How many days the monitor runs, a whole number from 1 to 365. Default 90.
+              required:
+              - type
+              - ids
+              - webhook_id
       responses:
         '201':
           description: The monitor.
           content:
             application/json:
               schema:
-                allOf:
-                - type: object
-                  properties:
-                    id:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+                  events:
+                    type: array
+                    items:
                       type: string
-                    type:
+                  webhook_id:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                    - active
+                    - expired
+                  expires_at:
+                    type: string
+                  created_at:
+                    type: string
+                  target_count:
+                    type: integer
+                  open_target_count:
+                    type: integer
+                  already_closed:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        closed_at:
+                          type:
+                          - string
+                          - 'null'
+                        closed_reason:
+                          type:
+                          - string
+                          - 'null'
+                      required:
+                      - id
+                      - closed_at
+                      - closed_reason
+                  not_found:
+                    type: array
+                    items:
                       type: string
-                      enum:
-                      - job
-                    events:
-                      type: array
-                      items:
-                        type: string
-                        enum:
-                        - job.closed
-                    webhook_id:
-                      type: string
-                    status:
-                      type: string
-                      enum:
-                      - active
-                      - expired
-                    expires_at:
-                      type: string
-                    created_at:
-                      type: string
-                    target_count:
-                      type: integer
-                    open_target_count:
-                      type: integer
-                - type: object
-                  properties:
-                    already_closed:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                          closed_at:
-                            type:
-                            - string
-                            - 'null'
-                          closed_reason:
-                            type:
-                            - string
-                            - 'null'
-                    not_found:
-                      type: array
-                      items:
-                        type: string
+                required:
+                - id
+                - type
+                - events
+                - webhook_id
+                - status
+                - expires_at
+                - created_at
+                - target_count
+                - open_target_count
+                - already_closed
+                - not_found
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
     get:
       operationId: listMonitors
+      tags:
+      - Monitors
       summary: List monitors
-      x-consequence: read-only
-      x-side-effects: none - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Your monitors, newest first. Pass next_cursor back as cursor.
+      description: Your monitors, newest first. Pass next_cursor back as cursor. Costs no credits.
       parameters:
-      - name: cursor
-        in: query
-        required: false
-        schema:
+      - schema:
           type: string
-      - name: limit
-        in: query
         required: false
-        schema:
+        name: cursor
+        in: query
+      - schema:
           type: integer
           minimum: 1
           maximum: 1000
+        required: false
+        name: limit
+        in: query
       responses:
         '200':
           description: One page of monitors.
@@ -184,14 +197,10 @@ paths:
                           type: string
                         type:
                           type: string
-                          enum:
-                          - job
                         events:
                           type: array
                           items:
                             type: string
-                            enum:
-                            - job.closed
                         webhook_id:
                           type: string
                         status:
@@ -207,54 +216,80 @@ paths:
                           type: integer
                         open_target_count:
                           type: integer
+                      required:
+                      - id
+                      - type
+                      - events
+                      - webhook_id
+                      - status
+                      - expires_at
+                      - created_at
+                      - target_count
+                      - open_target_count
                   next_cursor:
                     type:
                     - string
                     - 'null'
+                required:
+                - data
+                - next_cursor
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   /v1/monitors/{id}:
     get:
       operationId: getMonitor
+      tags:
+      - Monitors
       summary: Get a monitor
-      x-consequence: read-only
-      x-side-effects: none - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: One monitor.
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
           format: uuid
+        required: true
+        name: id
+        in: path
       responses:
         '200':
           description: The monitor.
@@ -267,14 +302,10 @@ paths:
                     type: string
                   type:
                     type: string
-                    enum:
-                    - job
                   events:
                     type: array
                     items:
                       type: string
-                      enum:
-                      - job.closed
                   webhook_id:
                     type: string
                   status:
@@ -290,49 +321,72 @@ paths:
                     type: integer
                   open_target_count:
                     type: integer
+                required:
+                - id
+                - type
+                - events
+                - webhook_id
+                - status
+                - expires_at
+                - created_at
+                - target_count
+                - open_target_count
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
     delete:
       operationId: deleteMonitor
+      tags:
+      - Monitors
       summary: Delete a monitor
-      x-consequence: irreversible
-      x-side-effects: deletes the monitor and its records - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Deletes a monitor; it sends nothing more.
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
           format: uuid
+        required: true
+        name: id
+        in: path
       responses:
         '200':
           description: Deleted.
@@ -345,62 +399,79 @@ paths:
                     type: string
                   deleted:
                     type: boolean
+                    enum:
+                    - true
+                required:
+                - id
+                - deleted
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   /v1/monitors/{id}/renew:
     post:
       operationId: renewMonitor
+      tags:
+      - Monitors
       summary: Renew a monitor
-      x-consequence: reversible
-      x-side-effects: extends the monitor - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Sets the monitor to expire expires_in_days (default 90) from now; works on an expired monitor too.
+      description: Sets the monitor to expire expires_in_days (default 90) from now. Works on an expired monitor too.
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
           format: uuid
-      requestBody:
         required: true
+        name: id
+        in: path
+      requestBody:
+        required: false
         content:
           application/json:
             schema:
               type: object
               properties:
                 expires_in_days:
-                  type: integer
-                  minimum: 1
-                  maximum: 365
-                  default: 90
+                  type: number
+                  description: How many days the monitor runs, a whole number from 1 to 365. Default 90.
       responses:
         '200':
           description: The renewed monitor.
@@ -413,14 +484,10 @@ paths:
                     type: string
                   type:
                     type: string
-                    enum:
-                    - job
                   events:
                     type: array
                     items:
                       type: string
-                      enum:
-                      - job.closed
                   webhook_id:
                     type: string
                   status:
@@ -436,66 +503,91 @@ paths:
                     type: integer
                   open_target_count:
                     type: integer
+                required:
+                - id
+                - type
+                - events
+                - webhook_id
+                - status
+                - expires_at
+                - created_at
+                - target_count
+                - open_target_count
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   /v1/monitors/{id}/ids:
     post:
       operationId: addMonitorIds
+      tags:
+      - Monitors
       summary: Add records to a monitor
-      x-consequence: reversible
-      x-side-effects: adds records - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Adds open jobs to the monitor; already-closed and unknown ids are reported, not added.
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
           format: uuid
+        required: true
+        name: id
+        in: path
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-              - ids
               properties:
                 ids:
                   type: array
                   items:
                     type: string
+                    minLength: 1
+                    maxLength: 512
                   minItems: 1
                   maxItems: 1000
-                  description: Ids as search returned them, up to 1,000.
+                  description: Record ids as search returned them, up to 1000 per request.
+              required:
+              - ids
       responses:
         '200':
           description: What was added.
@@ -523,69 +615,93 @@ paths:
                           type:
                           - string
                           - 'null'
+                      required:
+                      - id
+                      - closed_at
+                      - closed_reason
                   not_found:
                     type: array
                     items:
                       type: string
+                required:
+                - added
+                - target_count
+                - already_closed
+                - not_found
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
     delete:
       operationId: removeMonitorIds
+      tags:
+      - Monitors
       summary: Remove records from a monitor
-      x-consequence: reversible
-      x-side-effects: removes records - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Removes records; ids not in the monitor are ignored.
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
           format: uuid
+        required: true
+        name: id
+        in: path
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-              - ids
               properties:
                 ids:
                   type: array
                   items:
                     type: string
+                    minLength: 1
+                    maxLength: 512
                   minItems: 1
                   maxItems: 1000
-                  description: Ids as search returned them, up to 1,000.
+                  description: Record ids as search returned them, up to 1000 per request.
+              required:
+              - ids
       responses:
         '200':
           description: How many were removed.
@@ -596,61 +712,77 @@ paths:
                 properties:
                   removed:
                     type: integer
+                required:
+                - removed
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
     get:
       operationId: listMonitorIds
+      tags:
+      - Monitors
       summary: List a monitor's records
-      x-consequence: read-only
-      x-side-effects: none - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: The monitor's records in id order; a record whose event was sent shows status closed.
+      description: The records in a monitor in id order. A record whose event was sent shows status closed.
       parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
+      - schema:
           type: string
           format: uuid
-      - name: cursor
-        in: query
-        required: false
-        schema:
+        required: true
+        name: id
+        in: path
+      - schema:
           type: string
-      - name: limit
-        in: query
         required: false
-        schema:
+        name: cursor
+        in: query
+      - schema:
           type: integer
           minimum: 1
           maximum: 1000
+        required: false
+        name: limit
+        in: query
       responses:
         '200':
           description: One page of records.
@@ -681,64 +813,66 @@ paths:
                           type:
                           - string
                           - 'null'
+                      required:
+                      - id
+                      - source_provider
+                      - status
+                      - added_at
+                      - closed_at
                   next_cursor:
                     type:
                     - string
                     - 'null'
+                required:
+                - data
+                - next_cursor
         '400':
           description: Invalid request.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '402':
-          description: Monitors need a paid plan, or the request would pass the plan's monitored-records limit.
+          description: Monitors need the Builder package or above, or the plan's monitoring limit would be passed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '404':
           description: No such monitor or webhook on this account.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Monitors
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
 components:
-  schemas:
-    ErrorResponse:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: string
-          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
-        message:
-          type: string
-          description: Additional detail. Present on 402 quota responses; other errors carry only error.
   securitySchemes:
-    apiKey:
+    bearerAuth:
       type: http
       scheme: bearer
-      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
-    oidc:
-      type: openIdConnect
-      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
-      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
-x-service-info:
-  categories:
-  - data
-  - jobs
-  - technographics
-  docs:
-    homepage: https://jobspipe.dev
-    apiReference: https://docs.jobspipe.dev
-    llms: https://jobspipe.dev/llms.txt
+      description: Your JobsPipe API key (starts with jp_live_).

@@ -1,0 +1,1407 @@
+openapi: 3.2.0
+info:
+  title: JobsPipe Jobs API
+  version: 1.0.0
+  description: JobsPipe is a unified data API over public job and technographic sources.
+  contact:
+    name: JobsPipe
+    url: https://jobspipe.dev
+    email: support@jobspipe.dev
+servers:
+- url: https://api.jobspipe.dev
+security:
+- apiKey: []
+tags:
+- name: Jobs
+paths:
+  /v1/jobs/search:
+    post:
+      operationId: searchJobs
+      summary: Search job postings
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: Returns live job postings matching the supplied filters, normalized into a single schema. The body is a JSON object of optional filters; all filters combine with AND, and array filters ending in _or match any of their values. An empty body returns the most recent postings up to your plan's page size.
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSearchRequest'
+      responses:
+        '200':
+          description: A page of matching job postings.
+          headers:
+            Deprecation:
+              $ref: '#/components/headers/Deprecation'
+            Sunset:
+              $ref: '#/components/headers/Sunset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSearchResponse'
+        '400':
+          description: 'The request body failed validation. error is "Invalid search filters: " followed by each problem, separated by "; ". An unknown key is reported as unknown filter: ''key'', with a suggestion when a close field name exists (e.g. "unknown filter: ''query''. Did you mean query -> job_title_or?"); any other problem is reported as field: message.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Per-second rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+        '502':
+          description: The search backend failed. error is "Job search is temporarily unavailable. Retry shortly." Consumes no credits; safe to retry with backoff.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '504':
+          description: The query was too expensive to complete within the search time or memory limit. error is "Job search timed out. Narrow your filters and retry." or "Job search was too large to complete. Narrow your filters and retry." Consumes no credits; narrow the filters before retrying.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+      - Jobs
+  /v1/jobs/agentic-search:
+    post:
+      operationId: agenticSearchJobs
+      summary: Search job postings from a plain-language request
+      x-consequence: read-only
+      x-side-effects: none - consumes 1 credit from the caller's monthly quota per job returned that the account has not already paid for this calendar month; candidates considered but not returned cost nothing
+      security:
+      - apiKey: []
+      - oidc:
+        - jobs:read
+      description: Takes a request in plain language, plans structured searches from it, checks hard constraints (place, pay, dates) on the stored records, scores every candidate posting against the request from its text, and returns the best-matching postings first with a relevance score on each. Use it when the caller has a sentence rather than filters; use /v1/jobs/search when the filters are already known. Slower than /v1/jobs/search (typically 5-15 seconds) and limited to 25 postings per call and 10 calls a minute per account.
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgenticSearchRequest'
+      responses:
+        '200':
+          description: Ranked postings and the plan that produced them.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgenticSearchResponse'
+        '400':
+          description: 'The request body failed validation. error is "Invalid request: " followed by each problem, separated by "; ". Unknown top-level keys are rejected; unknown keys inside filters are ignored.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Monthly request quota exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: 'Either the per-second plan rate limit, or this route''s own allowance of 10 calls a minute per account (Retry-After: 60, retry_after_seconds: 60 in the body).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitErrorResponse'
+        '503':
+          description: Agentic search is switched off. error names /v1/jobs/search as the alternative. Consumes no credits.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+      - Jobs
+components:
+  schemas:
+    Job:
+      type: object
+      description: A normalized job posting.
+      properties:
+        id:
+          type:
+          - string
+          - number
+          description: 'JobsPipe ID for this posting. Stable for the same posting over time, but not shared across boards: the same role listed on two sources is two postings with two IDs.'
+        job_title:
+          type: string
+        normalized_title:
+          type:
+          - string
+          - 'null'
+          description: Canonical form of the title, assigned by the same title classifier that fills occupation_code. Null until the title has been classified.
+        company:
+          type: string
+        company_domain:
+          type:
+          - string
+          - 'null'
+          description: Hiring company's website domain, for CRM and account matching. Resolved from the company name where a source did not supply one.
+        company_object:
+          anyOf:
+          - $ref: '#/components/schemas/CompanyObject'
+          - type: 'null'
+          description: 'Structured company details, or null when nothing beyond the name is known. Fields are independently optional: coverage depends on which source resolved the company.'
+        employer_type:
+          type: string
+          description: 'Who posted the job: "employer" (hires for itself), "agency" (staffing or recruitment firm posting for a client) or "broker" (job board republishing another company''s listing). Defaults to "employer" where the company has not been classified.'
+        location:
+          type:
+          - string
+          - 'null'
+        short_location:
+          type:
+          - string
+          - 'null'
+          description: The same raw location string as location. TheirStack distinguishes a short and a long form; JobsPipe publishes one normalized string in all three.
+        long_location:
+          type:
+          - string
+          - 'null'
+          description: The same raw location string as location, under the same rules as short_location.
+        country_code:
+          type:
+          - string
+          - 'null'
+        country:
+          type:
+          - string
+          - 'null'
+          description: Country name for country_code, e.g. United States. Derived from the code, which sources publish far more often than the name.
+        countries:
+          type: array
+          items:
+            type: string
+          description: country as a single-element array, empty when the country is unknown. An array for TheirStack compatibility, where a posting could span several.
+        country_codes:
+          type: array
+          items:
+            type: string
+          description: country_code as a single-element array, empty when the country is unknown. An array for TheirStack compatibility, where a posting could span several.
+        continents:
+          type: array
+          items:
+            type: string
+          description: Continent for country_code as a single-element array, e.g. ["Europe"]. Empty when the country is unknown.
+        latitude:
+          type:
+          - number
+          - 'null'
+          description: 'Latitude of the job''s location: the posting''s own coordinates when the job board published them. City-centre coordinates are being switched on, and as they are, a posting whose city is known is filled from the centre of that city instead. Read coordinates_source to tell the two apart. Null when there are none.'
+        longitude:
+          type:
+          - number
+          - 'null'
+          description: Longitude of the job's location, under the same rules as latitude.
+        coordinates_source:
+          type:
+          - string
+          - 'null'
+          enum:
+          - source
+          - city_centroid
+          - null
+          description: 'Where latitude and longitude come from. "source": the job board published them for this posting. "city_centroid": the centre of the posting''s city, not the employer''s address, so do not treat it as a precise location. Null when there are no coordinates.'
+        postal_code:
+          type:
+          - string
+          - 'null'
+          description: Postal code of the job's location, when the source published one. Distinct from company_object.location.postal_code, which is the employer's headquarters.
+        state_code:
+          type:
+          - string
+          - 'null'
+          description: Region or state of the job's location, as the source published it (e.g. WA, or a spelled-out region). Not guaranteed to be a two-letter code.
+        cities:
+          type: array
+          items:
+            type: string
+          description: The job's city as a single-element array, empty when the source published no city.
+        remote:
+          type:
+          - boolean
+          - 'null'
+        hybrid:
+          type:
+          - boolean
+          - 'null'
+          description: True when work_arrangement is hybrid, false when it is remote or onsite, null when the arrangement is unknown. Never false on a guess.
+        seniority:
+          type:
+          - string
+          - 'null'
+        employment_statuses:
+          type: array
+          items:
+            type: string
+          description: 'The job''s employment type as a single-element array: full_time, part_time, contract, temporary or internship. Empty when the posting does not state one. Note the underscored spelling; the employment_type_or filter takes the hyphenated form.'
+        date_posted:
+          type:
+          - string
+          - 'null'
+        discovered_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When JobsPipe first saw the posting. Poll with the discovered_at_gte filter to fetch only what is new since your last run.
+        status:
+          type: string
+          description: 'Lifecycle state: active or closed. Postings no status recheck has reached yet report active.'
+        closed_at:
+          type:
+          - string
+          - 'null'
+          description: When the posting was closed, as YYYY-MM-DD HH:MM:SS in UTC (a space separator, not the RFC 3339 T). Null while the job is active.
+        closed_reason:
+          type:
+          - string
+          - 'null'
+          description: 'Why the posting closed: closed (the source said so), gone (the posting disappeared) or stale (unseen long enough to be treated as closed). Null while the job is active.'
+        has_blurred_data:
+          type: boolean
+          description: 'DEPRECATED. Always false: preview mode has been removed and every record is returned unmasked.'
+        url:
+          type:
+          - string
+          - 'null'
+          description: Link to the posting.
+        source_url:
+          type:
+          - string
+          - 'null'
+          description: The posting's URL on the first entry of sources, falling back to url. See sources for every board it was seen on.
+        final_url:
+          type:
+          - string
+          - 'null'
+          description: 'Always null: JobsPipe does not resolve apply-link redirects. Kept for TheirStack compatibility.'
+        salary_string:
+          type:
+          - string
+          - 'null'
+          description: The pay as written in the posting, e.g. "$120K - $150K a year" or "$45 an hour". Present only when the posting states pay; null otherwise. Roughly a quarter of postings disclose pay.
+        salary_currency:
+          type:
+          - string
+          - 'null'
+          description: ISO 4217 currency code of the salary, e.g. USD, GBP, EUR.
+        min_annual_salary:
+          type:
+          - integer
+          - 'null'
+          description: Minimum pay annualized to a yearly figure in the original currency. Hourly, daily, weekly and monthly rates are scaled to a year; salary_string preserves the original.
+        max_annual_salary:
+          type:
+          - integer
+          - 'null'
+          description: Maximum pay annualized to a yearly figure in the original currency.
+        min_annual_salary_usd:
+          type:
+          - integer
+          - 'null'
+          description: min_annual_salary converted to USD. Non-USD pay is converted through a pinned ECB exchange-rate snapshot rather than a live rate, so the same posting always converts to the same figure. Null when the posting discloses no pay or no rate exists for its currency.
+        max_annual_salary_usd:
+          type:
+          - integer
+          - 'null'
+          description: max_annual_salary converted to USD, under the same rules as min_annual_salary_usd.
+        avg_annual_salary_usd:
+          type:
+          - integer
+          - 'null'
+          description: Midpoint of min_annual_salary_usd and max_annual_salary_usd, rounded. When only one of the two is known, that value; null when neither is.
+        keyword_slugs:
+          type: array
+          items:
+            type: string
+          description: Skill slugs extracted from the title and description against a curated lexicon, e.g. python, kubernetes, financial-modeling.
+        technology_slugs:
+          type: array
+          items:
+            type: string
+          description: 'The older, ungraded technology list, kept for compatibility; prefer technologies. Named technologies: languages, frameworks, products, tools and platforms, plus named standards and certifications (e.g. python, snowflake, soc2). Broader skills and concepts such as ci/cd or machine-learning appear only in keyword_slugs.'
+        technologies:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobTechnology'
+          description: Beta. Technologies the posting names, graded by strength and confidence. Present only when the request set include_technologies, and then on every job; empty until the posting has been extracted or while the feature is off. Costs 1 extra credit per job that names at least one, once per job per calendar month. Sorted required, preferred, mentioned; then confidence high to low; then name.
+        occupation_code:
+          type:
+          - string
+          - 'null'
+          description: ISCO-08 unit group of the role (4-digit), e.g. 2512 = Software Developers.
+        occupation_label:
+          type:
+          - string
+          - 'null'
+          description: Human-readable ISCO-08 unit group label.
+        isic_division:
+          type:
+          - string
+          - 'null'
+          description: ISIC Rev.4 industry division of the employer (2-digit), e.g. 62 = Computer programming and consultancy.
+        isic_division_label:
+          type:
+          - string
+          - 'null'
+          description: Human-readable ISIC Rev.4 division label.
+        description:
+          type:
+          - string
+          - 'null'
+          description: Full text of the posting as published by the source.
+        easy_apply:
+          type:
+          - boolean
+          - 'null'
+          description: 'Always null: JobsPipe does not detect one-click apply. Kept for TheirStack compatibility.'
+        hiring_team:
+          type: array
+          items: {}
+          description: 'Always empty: JobsPipe does not publish named recruiter contacts. Kept for TheirStack compatibility.'
+        reposted:
+          type: boolean
+          description: 'Always false: JobsPipe does not track reposts. Kept for TheirStack compatibility.'
+        date_reposted:
+          type:
+          - string
+          - 'null'
+          description: Always null, under the same rules as reposted.
+        matching_phrases:
+          type: array
+          items:
+            type: string
+          description: Always empty. Kept for TheirStack compatibility, where it echoes the searched phrases a posting matched.
+        matching_words:
+          type: array
+          items:
+            type: string
+          description: Always empty, under the same rules as matching_phrases.
+        work_arrangement:
+          type:
+          - string
+          - 'null'
+          description: 'How the role is worked: remote, hybrid or onsite. Null when the posting does not say. Finer than remote, which answers false for hybrid and onsite alike; filter on it with work_arrangement_or.'
+        is_manager:
+          type:
+          - boolean
+          - 'null'
+          description: Whether the role manages people. seniority maps our lead bucket to "director" for TheirStack parity, which files staff and principal individual contributors under a title that reads as people management; this field tells them apart. Null until the title has been classified.
+        job_function:
+          type:
+          - string
+          - 'null'
+          description: 'Coarse function of the role, from a closed vocabulary: Engineering, Data & Analytics, Product, Design, IT & Security, Sales, Marketing, Customer Support, Operations, Finance & Accounting, Legal, Human Resources, Healthcare, Education, Science & Research, Manufacturing, Logistics & Supply Chain, Construction & Trades, Hospitality & Food, Retail, Transport, Security & Protective, Administration, Executive. Null until the title has been classified.'
+        last_seen_at:
+          type:
+          - string
+          - 'null'
+          description: When the posting was last confirmed still live by a status recheck, as YYYY-MM-DD HH:MM:SS in UTC (a space separator, not the RFC 3339 T). Null until a recheck has reached it.
+        verified_at:
+          type:
+          - string
+          - 'null'
+          description: When JobsPipe last checked the posting, whether or not anything changed, as YYYY-MM-DD HH:MM:SS in UTC (a space separator, not the RFC 3339 T). Null until a recheck has reached it.
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobSource'
+          description: Every board the posting was seen on, for deduplicating against your own crawl. Empty when no source entry was stored.
+        work_arrangement_source:
+          type:
+          - string
+          - 'null'
+          description: 'How work_arrangement was decided: "source" (declared by the job board) or "text" (parsed from the description).'
+        visa_sponsorship:
+          type:
+          - string
+          - 'null'
+          description: 'Visa stance parsed from the posting: "offers", "no" or "citizenship_required". Null where the posting says nothing.'
+        benefits:
+          type: array
+          items:
+            type: string
+          description: Benefit slugs from structured source data. Empty where the source exposes none.
+        salary_source:
+          type:
+          - string
+          - 'null'
+          description: 'Where the salary came from: "source" (structured data from the board) or "description" (parsed from the posting text).'
+        salary_type:
+          type:
+          - string
+          - 'null'
+          description: '"observed" when the posting itself carries pay, "estimated" when only the corpus benchmark does, null when neither.'
+        estimated_min_annual_salary_usd:
+          type:
+          - number
+          - 'null'
+          description: 25th-percentile annual USD pay for this occupation and location, from public salary statistics. A benchmark, not the employer's posted pay; published beside any observed salary.
+        estimated_avg_annual_salary_usd:
+          type:
+          - number
+          - 'null'
+          description: Median benchmark. See estimated_min_annual_salary_usd.
+        estimated_max_annual_salary_usd:
+          type:
+          - number
+          - 'null'
+          description: 75th-percentile benchmark. See estimated_min_annual_salary_usd.
+        expires_at:
+          type:
+          - string
+          - 'null'
+          description: 'Application deadline where the source publishes one. Format: YYYY-MM-DD HH:MM:SS (UTC).'
+        applicant_count:
+          type:
+          - integer
+          - 'null'
+          description: Number of applicants where the source exposes it (LinkedIn).
+        recruiter_emails:
+          type: array
+          items:
+            type: string
+          description: Recruiter contact emails parsed from the posting text.
+        listing_type:
+          type:
+          - string
+          - 'null'
+          description: How the posting was listed where the source exposes it.
+        metro_code:
+          type:
+          - string
+          - 'null'
+          description: US CBSA metro code resolved from the job's location. Null outside covered metros.
+        metro_label:
+          type:
+          - string
+          - 'null'
+          description: Metro display name for metro_code, e.g. "New York-Newark-Jersey City, NY-NJ".
+        normalized_city:
+          type:
+          - string
+          - 'null'
+          description: The city the posting names, in one canonical spelling ("Munich" for a posting stored as "München", "London" for "London Area" or "Mayfair"). null when the location could not be placed. city_or matches on it.
+        seniority_source:
+          type:
+          - string
+          - 'null'
+          description: 'How seniority was decided: "source", "title" or "onet_prior" (occupation-level prior).'
+        esco_skills:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              label:
+                type:
+                - string
+                - 'null'
+          description: ESCO skill concepts for this job's extracted skills, as stable id/label pairs.
+        ghost_score:
+          type:
+          - number
+          - 'null'
+          description: 0-100 likelihood the posting is stale or evergreen rather than a live vacancy, from repost cadence, tenure and content signals. Null until scored.
+        language:
+          type:
+          - string
+          - 'null'
+          description: The language the posting text is written in, as a lowercase ISO 639-1 code, e.g. "en", "sv", "de". The language of the posting, not of the country it sits in. Null until the posting has been labelled.
+    ErrorResponse:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
+        message:
+          type: string
+          description: Additional detail. Present on 402 quota responses; other errors carry only error.
+    CompanyObject:
+      type: object
+      description: Structured details about the hiring company. Every field is independently optional.
+      properties:
+        name:
+          type:
+          - string
+          - 'null'
+        domain:
+          type:
+          - string
+          - 'null'
+          description: Bare website host, e.g. stripe.com.
+        url:
+          type:
+          - string
+          - 'null'
+          description: Company website.
+        logo:
+          type:
+          - string
+          - 'null'
+        employee_count:
+          type:
+          - integer
+          - 'null'
+          description: Headcount from the company's public profile or, failing that, from the employer's business record, which may be an estimate.
+        employee_count_min:
+          type:
+          - integer
+          - 'null'
+          description: Lower bound on headcount, when only a size band is known (e.g. 10000 for a "10,000+" company). Present for many companies that have no exact count.
+        linkedin_url:
+          type:
+          - string
+          - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+        location:
+          type:
+          - object
+          - 'null'
+          description: Company headquarters.
+          properties:
+            street:
+              type:
+              - string
+              - 'null'
+            city:
+              type:
+              - string
+              - 'null'
+            region:
+              type:
+              - string
+              - 'null'
+            postal_code:
+              type:
+              - string
+              - 'null'
+            country:
+              type:
+              - string
+              - 'null'
+        founded:
+          type:
+          - string
+          - 'null'
+          description: Year the company was founded, where known.
+        intelligence:
+          type:
+          - object
+          - 'null'
+          description: Revenue, legal identity and entity type of the employer, resolved for the posting's company in the posting's country. Null when no record exists or the record holds no finding, and always null on GET /v1/companies/{key}, which has no posting country to resolve against. Every field inside is independently null when it is not known.
+          properties:
+            revenue_usd:
+              type:
+              - number
+              - 'null'
+              description: Most recent known annual revenue, converted to US dollars. Null when no figure is known.
+            revenue_year:
+              type:
+              - integer
+              - 'null'
+              description: Fiscal year the revenue figure refers to.
+            revenue_source:
+              type:
+              - string
+              - 'null'
+              description: Short identifier of where the revenue figure came from, such as a business register, a securities filing or a company directory.
+            revenue_confidence:
+              type:
+              - string
+              - 'null'
+              enum:
+              - filed
+              - reported
+              - band
+              - derived
+              - extracted
+              - null
+              description: 'How the revenue figure was obtained, strongest first: filed = taken from the company''s statutory accounts; reported = stated by the company itself; band = only an estimated range is known; revenue_usd is a representative figure within it; derived = estimated from funding or valuation; extracted = read from public text about the company.'
+            entity_kind:
+              type:
+              - string
+              - 'null'
+              description: 'What kind of organisation the employer is: company, branch, public_sector or staffing_agency.'
+            founded_year:
+              type:
+              - integer
+              - 'null'
+              description: Year the legal entity was founded or registered.
+            headcount:
+              type:
+              - integer
+              - 'null'
+              description: Employee count as filed, registered or listed in a company directory. Can differ from employee_count, which comes from the company's public profile.
+            industry:
+              type:
+              - string
+              - 'null'
+              description: Industry as recorded for the legal entity or, where no record exists, the industry a company directory lists.
+            hq_region:
+              type:
+              - string
+              - 'null'
+              description: Region or state of the employer's headquarters, as written by the source (for example California), when known.
+            hq_city:
+              type:
+              - string
+              - 'null'
+              description: City of the employer's headquarters, when known.
+            revenue_low_usd:
+              type:
+              - number
+              - 'null'
+              description: 'Lower bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise.'
+            revenue_high_usd:
+              type:
+              - number
+              - 'null'
+              description: 'Upper bound of the revenue, in US dollars: the range behind the figure when the source gave one; null otherwise.'
+            headcount_low:
+              type:
+              - integer
+              - 'null'
+              description: 'Lower bound of the headcount: the range behind the figure when the source gave one; null otherwise.'
+            headcount_high:
+              type:
+              - integer
+              - 'null'
+              description: 'Upper bound of the headcount: the range behind the figure when the source gave one; null otherwise.'
+            lei:
+              type:
+              - string
+              - 'null'
+              description: Legal Entity Identifier (ISO 17442), 20 characters.
+    JobSearchResponse:
+      type: object
+      required:
+      - metadata
+      - data
+      properties:
+        metadata:
+          type: object
+          description: Counts, the pagination cursor, and what the call cost.
+          properties:
+            total_results:
+              type:
+              - integer
+              - 'null'
+            truncated_results:
+              type: integer
+            total_companies:
+              type:
+              - integer
+              - 'null'
+              description: 'Always null: JobsPipe does not count distinct companies. Kept for TheirStack compatibility.'
+            truncated_companies:
+              type: integer
+              description: Always 0, under the same rules as total_companies.
+            next_cursor:
+              type:
+              - string
+              - 'null'
+            credits_charged:
+              type: integer
+              description: 'Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC), plus technologies_credits_charged when include_technologies was set. Absent for callers that are not metered.'
+            jobs_already_paid:
+              type: integer
+              description: Jobs in data that cost nothing because the account already paid for them this calendar month. Without include_technologies, credits_charged plus jobs_already_paid equals the number of jobs returned.
+            technologies_credits_charged:
+              type: integer
+              description: 'Present only with include_technologies. The part of credits_charged spent on technologies: 1 per returned job that names at least one technology and whose technologies the account had not already paid for this calendar month.'
+            technologies_already_paid:
+              type: integer
+              description: Present only with include_technologies. Jobs whose technologies cost nothing because the account already paid for them this calendar month.
+            credits_remaining:
+              type: integer
+              description: 'Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered.'
+            credits_allowance:
+              type: integer
+              description: 'What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered.'
+            field_coverage:
+              type: object
+              description: 'For each filter the request used that reads a partially filled field: the share (0-100) of active postings from the last 30 days carrying it, overall and per source.'
+              additionalProperties:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  filled_pct:
+                    type: number
+                  by_source:
+                    type: object
+                    additionalProperties:
+                      type: number
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Job'
+          description: The page of matching job postings.
+    JobSearchRequest:
+      type: object
+      description: Optional filters for the job search. All fields are optional and combine with AND. Array filters ending in _or match any of their values; those ending in _not exclude their values. Unknown fields are rejected with HTTP 400.
+      properties:
+        job_title_or:
+          type: array
+          items:
+            type: string
+          description: Match jobs whose title contains any of these.
+        job_title_not:
+          type: array
+          items:
+            type: string
+          description: Exclude jobs whose title contains any of these.
+        description_or:
+          type: array
+          items:
+            type: string
+          description: Match jobs whose description contains every word of any one of these phrases. Each phrase is split into words and matched case-insensitively; the words may appear in any order and need not be adjacent, so this is neither a substring nor an exact-phrase match.
+        description_not:
+          type: array
+          items:
+            type: string
+          description: 'Exclude jobs whose description contains every word of any one of these phrases, matched the same way as description_or: case-insensitive, in any order, not necessarily adjacent.'
+        job_country_code_or:
+          type: array
+          items:
+            type: string
+          description: Match any of these ISO alpha-2 country codes, e.g. US, GB.
+        job_country_code_not:
+          type: array
+          items:
+            type: string
+          description: Exclude these ISO alpha-2 country codes.
+        job_location_or:
+          type: array
+          items:
+            type: string
+          description: Match jobs whose city or region contains any of these, e.g. Seattle, WA. Metro wrappers are stripped (Greater London also matches London) and a US state, Canadian province or UK nation by name matches every spelling of it (Pennsylvania also matches PA). Terms of three characters or fewer are codes or exact names and match whole values (WA is Washington state, never Iowa); a country code or name matches the whole country. Combine with job_country_code_or to disambiguate same-named cities. For a city by name, city_or is the precise filter.
+        city_or:
+          type: array
+          items:
+            type: string
+          description: 'Whole city names, e.g. London, Munich. Case-insensitive, and a metro wrapper on the stored value is ignored (Greater London and London Area are London). Spellings and diacritics are normalised for cities we know: München finds Munich, Cracow finds Kraków. Other cities match the stored value exactly. Combine with job_country_code_or to disambiguate same-named cities; use job_location_or for substring matching.'
+        job_seniority_or:
+          type: array
+          items:
+            type: string
+          description: Match any of these seniority levels.
+        include_unlabeled_employment_type:
+          type: boolean
+          description: Also return jobs whose employment type is unknown. About 27% of postings do not state one, and employment_type_or excludes every one of them by default.
+        include_unlabeled_seniority:
+          type: boolean
+          description: Also return jobs whose seniority is unknown. About 55% of postings do not state a level, and job_seniority_or excludes every one of them by default.
+        skills_or:
+          type: array
+          items:
+            type: string
+          description: Match jobs tagged with any of these skill slugs, e.g. python, kubernetes. Skills are extracted from title + description against a curated lexicon.
+        occupation_code_or:
+          type: array
+          items:
+            type: string
+          description: ISCO-08 occupation codes. 4-digit codes match exactly (2512 = Software Developers); 1-3 digit codes match as hierarchy prefixes (25 = all ICT professionals).
+        isic_division_or:
+          type: array
+          items:
+            type: string
+          description: ISIC Rev.4 industry divisions of the employer (2-digit, e.g. 62 = Computer programming and consultancy).
+        region_or:
+          type: array
+          items:
+            type: string
+          description: US states and Canadian provinces as ISO 3166-2 codes, e.g. ["US-NY", "CA-ON"]. Qualified by country because the underlying column stores "CA" for California while "CA" is also Canada's country code. Matches every spelling a job board publishes, so "CA-ON" finds both "ON" and "Ontario".
+        employment_type_or:
+          type: array
+          items:
+            type: string
+            enum:
+            - full-time
+            - part-time
+            - contract
+            - temporary
+            - internship
+          description: Match any of these employment types.
+        language_or:
+          type: array
+          items:
+            type: string
+          description: 'Match postings WRITTEN in any of these languages, as lowercase ISO 639-1 codes, e.g. ["en"] or ["en", "sv"]. The language of the posting text, not of the country it sits in: 18.3% of Swedish postings and 17.7% of German ones are in English, and Canada is 84.5% English with the rest French. Use it to fetch only the roles a team can actually read when hiring across a multilingual market. Values that are not exactly two letters are ignored. Postings we have not labelled never match; add include_unknown: ["language"] to keep them.'
+        language_not:
+          type: array
+          items:
+            type: string
+          description: Exclude postings written in any of these languages, as lowercase ISO 639-1 codes, e.g. ["fr"]. Postings we have not labelled are kept, so this narrows by known language rather than requiring one.
+        source_or:
+          type: array
+          items:
+            type: string
+          description: 'Return only jobs from any of these collector sources (OR). Job boards: linkedin, indeed, cvlibrary, resumelibrary, ycombinator, arbeitnow, himalayas, jobicy, themuse, remoteok, workingnomads, landingjobs, remotive, rise, bayt. Public employment services: eures, jobtech. ATS (company career sites): greenhouse, workday, ashby, lever, workable, recruitee, personio, smartrecruiters, breezy, paylocity, manatal, jobscore, teamtailor, pinpoint, hirehive. Case, spaces and punctuation are ignored ("CV-Library" = cvlibrary); aliases: yc for ycombinator, breezyhr for breezy. To exclude sources instead, use source_not. An unrecognized source is not an error; it simply matches nothing, so the request returns zero jobs.'
+        source_not:
+          type: array
+          items:
+            type: string
+          description: Exclude jobs from these collector sources. Same accepted values and aliases as source_or, plus any source added later; an unrecognized source excludes nothing.
+        company_name_partial_match_or:
+          type: array
+          items:
+            type: string
+          description: Match any of these company names (partial / contains).
+        company_technology_slug_or:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+          description: Beta. Only jobs at companies whose own postings show they use any of these technologies (evidence tier likely or confirmed), e.g. ["snowflake", "dbt"]. At most 10 slugs. Answers 400 "filter not enabled" until the filter is switched on.
+        min_employee_count:
+          type: integer
+          description: Only jobs at companies with at least this many employees. Uses the exact headcount where known, otherwise the lower bound of the company's size band. Jobs whose company size is unknown are excluded.
+        max_employee_count:
+          type: integer
+          description: Only jobs at companies with at most this many employees. Uses the exact headcount where known; a company known only by a size band matches when the band starts at or below this number ("11-50" matches 100, "10,000+" does not).
+        min_revenue_usd:
+          type: number
+          minimum: 0
+          description: Only jobs at companies whose estimated annual revenue, in US dollars, is at least this amount (the published revenue_usd). Companies with no revenue on record are excluded unless include_unknown contains "company_revenue".
+        max_revenue_usd:
+          type: number
+          minimum: 0
+          description: Only jobs at companies whose estimated annual revenue, in US dollars, is at most this amount (the published revenue_usd). Companies with no revenue on record are excluded unless include_unknown contains "company_revenue".
+        remote:
+          type: boolean
+          description: true for remote-only, false to exclude remote.
+        work_arrangement_or:
+          type: array
+          items:
+            type: string
+            enum:
+            - remote
+            - hybrid
+            - onsite
+          description: Match any of these work arrangements. Finer than remote, which answers false for hybrid and onsite alike. Jobs whose arrangement is unknown never match.
+        visa_sponsorship_or:
+          type: array
+          items:
+            type: string
+            enum:
+            - offers
+            - 'no'
+            - citizenship_required
+          description: 'Match any of these visa stances, parsed from the posting text: "offers" (sponsorship available), "no" (explicitly not available), "citizenship_required" (citizenship or security clearance required). Jobs that say nothing never match.'
+        benefits_or:
+          type: array
+          items:
+            type: string
+          description: 'Match jobs advertising any of these benefit slugs, e.g. ["401k", "health_insurance", "paid_time_off"] (any spelling: "health insurance" works too). Benefits come from structured board data (Indeed today), so coverage is partial; see metadata.field_coverage.'
+        metro_code_or:
+          type: array
+          items:
+            type: string
+          description: Match any of these US CBSA metro codes (e.g. "35620" New York). Resolved from the job's city/region; non-US jobs never match.
+        max_applicant_count:
+          type: integer
+          minimum: 0
+          description: Only jobs with at most this many applicants. Applicant counts exist only where the source exposes them (LinkedIn), so this filter also drops every job without a count.
+        has_recruiter_email:
+          type: boolean
+          description: true for only jobs with a recruiter contact email parsed from the posting, false for only jobs without one.
+        min_salary_usd:
+          type: integer
+          minimum: 0
+          description: Only jobs whose posted salary reaches this annual USD amount (the max of the posted range, annualized). Jobs without a posted salary never match; estimated salaries are not consulted.
+        max_ghost_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 'Exclude jobs whose ghost-likelihood score (0-100) exceeds this. Unscored jobs always pass: the filter drops known-likely ghost jobs, it does not require a score.'
+        include_unknown:
+          type: array
+          items:
+            type: string
+            enum:
+            - employment_type
+            - seniority
+            - work_arrangement
+            - location
+            - occupation
+            - industry
+            - visa_sponsorship
+            - benefits
+            - company_size
+            - company_revenue
+            - salary
+            - language
+          description: Also match jobs whose value is UNKNOWN for these fields, e.g. ["seniority", "location"]. Without it every filter drops unknowns. "location" widens region_or within each subdivision's country, and job_location_or only when job_country_code_or is set. include_unknown_size, include_unlabeled_seniority and include_unlabeled_employment_type are aliases.
+        last_verified_max_age_days:
+          type: integer
+          minimum: 1
+          description: Only jobs seen on their source (or re-written) within this many days. Drops active jobs we have not confirmed recently.
+        esco_skill_id_or:
+          type: array
+          items:
+            type: string
+          description: Match jobs tagged with any of these ESCO skill concept IDs (exact match). See each job's esco_skills for the id/label pairs.
+        posted_at_max_age_days:
+          type: integer
+          description: Only postings newer than this many days.
+        posted_at_gte:
+          type: string
+          description: Only postings on or after this date (YYYY-MM-DD).
+        posted_at_lte:
+          type: string
+          description: Only postings on or before this date (YYYY-MM-DD).
+        discovered_at_gte:
+          type: string
+          description: Only postings first discovered by JobsPipe at or after this UTC datetime (YYYY-MM-DD HH:MM:SS). Tracks when we first saw the posting, not when it was posted; poll with your last run time to get only new jobs.
+        limit:
+          type: integer
+          minimum: 1
+          default: 25
+          description: 'Maximum number of results to return. Defaults to 25 and is capped by your plan''s page size: 25 on Free, 100 below 300,000 credits a month, 500 from 300,000. One credit buys one job for the rest of the calendar month, so this value is the most the call can cost: a response carrying 25 postings the account has not had this month costs 25 credits, and postings it already paid for are free. A search that matches nothing costs nothing. metadata.credits_charged reports the actual cost.'
+        offset:
+          type: integer
+          minimum: 0
+          description: Number of results to skip. Ignored when cursor is set. A positive offset takes precedence over page.
+        page:
+          type: integer
+          minimum: 0
+          description: 'Zero-based page index: skips page × limit results. Ignored when cursor is set or offset is positive.'
+        cursor:
+          type:
+          - string
+          - 'null'
+          description: Opaque pagination cursor. Pass metadata.next_cursor from the previous response to fetch the next page. Takes precedence over offset and page. null is treated as not set, and a cursor that cannot be decoded is ignored, so the first page is served.
+        order_by:
+          type: array
+          maxItems: 1
+          items:
+            type: object
+            required:
+            - field
+            properties:
+              field:
+                type: string
+              desc:
+                type: boolean
+          description: 'Sort order. Results are always newest-first by posted date, and that is the only order accepted: [{"field":"posted_at","desc":true}]. date_posted is accepted as a synonym for posted_at, the field name is case-insensitive, and desc may be omitted. Any other field, "desc": false, or more than one sort key returns 400 rather than being silently ignored.'
+        status:
+          type: string
+          enum:
+          - active
+          - closed
+          - any
+          default: active
+          description: 'Lifecycle filter: active (still open), closed, or any. Defaults to active, and the default also applies to job_id_or and job_ids, so looking up a closed job by ID requires status "closed" or "any".'
+        company_name_or:
+          type: array
+          items:
+            type: string
+          description: 'Match any of these company names. Each name and the stored company name are normalized the same way: lowercased, punctuation replaced by spaces, whitespace collapsed, and one trailing legal suffix (such as Inc, LLC, Ltd, Corp, GmbH, PLC, Group or Holdings) dropped. A job matches when its normalized company name equals a normalized name or starts with it followed by a space, so Amazon matches Amazon Web Services but not Amazonia.'
+        job_id_or:
+          type: array
+          items:
+            type: string
+          description: Return jobs whose ID is any of these. Each value is matched against both the JobsPipe id and the source's native id. Behaves the same as job_ids; values from both are combined. The status filter still applies and defaults to active.
+        job_ids:
+          type: array
+          items:
+            type: string
+          description: 'Look up these job IDs. Behaves the same as job_id_or: matched against the id or native id, combined with job_id_or, and subject to the status filter, which defaults to active.'
+        include_unknown_size:
+          type: boolean
+          description: 'Also return jobs at companies whose employee count is unknown when min_employee_count or max_employee_count is set; those filters otherwise exclude every unknown-size company. Alias of include_unknown: ["company_size"].'
+        employer_type_or:
+          type: array
+          items:
+            type: string
+            enum:
+            - employer
+            - agency
+            - broker
+          description: Match only these employer types. "employer" hires for itself, "agency" is a staffing or recruitment firm posting for a client, "broker" is a job board republishing another company's listing. Including "employer" also returns jobs whose company has not been classified yet, which are served with employer_type "employer".
+        employer_type_not:
+          type: array
+          items:
+            type: string
+            enum:
+            - employer
+            - agency
+            - broker
+          description: 'Exclude these employer types. Only classified jobs are excluded: a job whose company has not been classified yet is served as "employer" but is never removed by this filter, so ["employer"] does not drop it and ["agency","broker"] keeps it.'
+        include_total_results:
+          type: boolean
+          description: Include the total match count in metadata.total_results.
+        include_technologies:
+          type: boolean
+          description: Add technologies, the graded list of technologies each posting names, to every job. Off by default, and the field is then absent. Each returned job that names at least one technology costs 1 extra credit on top of the job's own credit, once per job per calendar month (UTC); jobs with none cost nothing extra. metadata.technologies_credits_charged reports that part of the cost.
+        blur_company_data:
+          type: boolean
+          description: 'DEPRECATED and ignored. Preview mode has been removed: every search returns unmasked records and costs 1 credit per job not already paid for this month. Still accepted so existing integrations do not break, but it changes neither the response nor the price.'
+      additionalProperties: false
+    AgenticSearchResponse:
+      type: object
+      required:
+      - metadata
+      - data
+      properties:
+        metadata:
+          type: object
+          description: 'What the call cost and how the page was produced. total_results and next_cursor are always null: the page is the answer, not a window on a larger set.'
+          properties:
+            total_results:
+              type:
+              - integer
+              - 'null'
+            truncated_results:
+              type: integer
+            next_cursor:
+              type:
+              - string
+              - 'null'
+            credits_charged:
+              type: integer
+              description: 'Credits this call cost: the jobs in data that the account had not already paid for this calendar month (UTC).'
+            jobs_already_paid:
+              type: integer
+            credits_remaining:
+              type: integer
+              description: 'Credits the account can still spend after this call: what is left of the monthly allowance plus extra credits, or on Free what is left of the one-time grant. Absent for callers that are not metered.'
+            credits_allowance:
+              type: integer
+              description: 'What credits_remaining is measured against: the monthly allowance on a paid package, the one-time grant on Free. Absent for callers that are not metered.'
+            agentic:
+              type: object
+              description: The plan and its execution, for transparency and debugging.
+              properties:
+                intent:
+                  type: string
+                  description: The request restated in one sentence.
+                role_intent:
+                  type: string
+                  description: The role, level and field alone; what the relevance score judges.
+                rounds:
+                  type: integer
+                  description: Planning rounds run, 1 to 3.
+                stop:
+                  type: string
+                  description: Why the loop stopped, e.g. "enough candidates passed".
+                candidates:
+                  type: integer
+                  description: Distinct postings considered.
+                dropped:
+                  type: integer
+                  description: Candidates removed by the hard-constraint checks.
+                passed:
+                  type: integer
+                  description: Candidates whose relevance cleared the bar.
+                fallback_used:
+                  type: boolean
+                  description: True when the planner was unavailable and the request words were searched as a title instead.
+                lanes:
+                  type: array
+                  description: Each structured search that ran, with its filters and what it returned.
+                  items:
+                    type: object
+                    properties:
+                      round:
+                        type: integer
+                      name:
+                        type: string
+                      filters:
+                        type: object
+                        additionalProperties: true
+                      returned:
+                        type: integer
+                      relevant:
+                        type: integer
+                      ms:
+                        type: integer
+                      error:
+                        type: string
+                judge:
+                  type: array
+                  description: Conditions read from each posting's text, e.g. whether the employer sponsors visas.
+                  items:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                      question:
+                        type: string
+                      want:
+                        type: string
+                        enum:
+                        - 'yes'
+                        - 'no'
+                        description: 'The answer the request wants: no for an exclusion such as "not hospitals".'
+                      hard:
+                        type: boolean
+                verify:
+                  type: object
+                  additionalProperties: true
+                  description: Hard rules checked on the stored record.
+                jev_calls:
+                  type: integer
+                jev_failed_batches:
+                  type: integer
+                recheck:
+                  type: object
+                  description: 'The second look at the shortlist: a stricter judgment of exact role and level against the request''s own words.'
+                  properties:
+                    ran:
+                      type: boolean
+                    candidates:
+                      type: integer
+                    failed:
+                      type: boolean
+                    ms:
+                      type: number
+                timings:
+                  type: object
+                  properties:
+                    planner_ms:
+                      type: number
+                    search_ms:
+                      type: number
+                    jev_ms:
+                      type: number
+                    total_ms:
+                      type: number
+        data:
+          type: array
+          description: The best-matching postings, highest relevance first. Postings scored below 0.3 are never returned, so data can be shorter than limit, or empty.
+          items:
+            allOf:
+            - $ref: '#/components/schemas/Job'
+            - type: object
+              properties:
+                relevance:
+                  type:
+                  - number
+                  - 'null'
+                  description: '0-1: how well the posting matches the role asked for, scaled by any text conditions in the request. null when scoring was unavailable and the page is newest-first.'
+                judgments:
+                  type:
+                  - object
+                  - 'null'
+                  description: 'The raw judgments behind relevance: role relevance and, per condition, the probabilities that the text states yes, states no, or says nothing.'
+                  properties:
+                    relevance:
+                      type: number
+                    injection:
+                      type: number
+                      description: Probability that the posting text tries to instruct the system reading it. At 0.7 or above the posting is never returned.
+                    recheck:
+                      type: number
+                      description: 'The shortlist re-check: probability that the requester would apply, judged on exact role and level.'
+                    constraints:
+                      type: object
+                      additionalProperties:
+                        type: object
+                        properties:
+                          'yes':
+                            type: number
+                          'no':
+                            type: number
+                          not_stated:
+                            type: number
+                uncertain:
+                  type: boolean
+                  description: judgments.relevance is between 0.3 and 0.7, where the role judgment is least stable; worth a human look.
+                lanes:
+                  type: array
+                  items:
+                    type: string
+                  description: Which planned searches returned this posting.
+    AgenticSearchRequest:
+      type: object
+      required:
+      - query
+      additionalProperties: false
+      properties:
+        query:
+          type: string
+          minLength: 2
+          maxLength: 500
+          description: What the caller is looking for, in plain language, e.g. "senior backend engineer in Berlin, visa sponsorship, hybrid ok".
+        filters:
+          type: object
+          additionalProperties: true
+          description: Hard filters applied to every planned search, in the filter names of /v1/jobs/search (job_country_code_or, city_or, region_or, remote, posted_at_max_age_days, language_or, ...). Unknown keys are ignored. Paging and ordering keys are not accepted.
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 25
+          default: 10
+          description: Postings to return, at most 25 and never more than the plan's page size.
+    JobSource:
+      type: object
+      description: One board a posting was seen on.
+      properties:
+        provider:
+          type: string
+          description: Collector source the posting was seen on, e.g. linkedin, indeed.
+        url:
+          type:
+          - string
+          - 'null'
+          description: The posting's URL on that source.
+        seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the posting was seen on that source.
+    JobTechnology:
+      type: object
+      description: 'One technology a posting names, graded. Beta: served while the per-job technologies flag is on.'
+      required:
+      - slug
+      - name
+      - kind
+      - category
+      - parent_category
+      - logo
+      - strength
+      - confidence
+      - sections
+      - in_title
+      - terms
+      - terms_cs
+      properties:
+        slug:
+          type: string
+          description: Taxonomy slug, e.g. "snowflake" or ".net".
+        name:
+          type: string
+          description: Display name, e.g. "Snowflake".
+        kind:
+          type: string
+          description: product, language, framework, methodology, certification or standard.
+        category:
+          type: string
+          description: e.g. "Databases". Empty string when unknown.
+        parent_category:
+          type: string
+          description: e.g. "Software and tools". Empty string when unknown.
+        logo:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Absolute URL of the technology's logo; null when there is none.
+        strength:
+          type: string
+          enum:
+          - required
+          - preferred
+          - mentioned
+          description: required = the posting asks for it; preferred = a nice-to-have; mentioned = named without being asked for. The strongest reading of the posting.
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+          description: high = independent checks agree the posting names it; medium = required or in the title; low = otherwise.
+        sections:
+          type: array
+          items:
+            type: string
+          description: Posting sections it appears in, e.g. ["requirements"].
+        in_title:
+          type: boolean
+          description: Whether the job title names it.
+        terms:
+          type: array
+          items:
+            type: string
+          description: Case-insensitive text forms that find the mention in description.
+        terms_cs:
+          type: array
+          items:
+            type: string
+          description: Case-sensitive text forms, e.g. "Go" or "R".
+    RateLimitErrorResponse:
+      type: object
+      required:
+      - error
+      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
+      properties:
+        error:
+          type: string
+          description: 'Human-readable message: "Rate limit exceeded".'
+  headers:
+    Deprecation:
+      description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 9745 date of when the endpoint was or will be deprecated. Absent on current endpoints.
+      schema:
+        type: string
+    Sunset:
+      description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 8594 timestamp after which the endpoint stops working - at least 6 months after the Deprecation date. Absent on current endpoints.
+      schema:
+        type: string
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
+  securitySchemes:
+    apiKey:
+      type: http
+      scheme: bearer
+      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
+    oidc:
+      type: openIdConnect
+      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
+      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
+x-service-info:
+  categories:
+  - data
+  - jobs
+  - technographics
+  docs:
+    homepage: https://jobspipe.dev
+    apiReference: https://docs.jobspipe.dev
+    llms: https://jobspipe.dev/llms.txt

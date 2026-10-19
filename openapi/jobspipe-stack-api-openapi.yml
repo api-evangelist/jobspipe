@@ -1,254 +1,269 @@
 openapi: 3.2.0
 info:
-  title: JobsPipe Stack API
   version: 1.0.0
-  description: JobsPipe is a unified data API over public job and technographic sources.
-  contact:
-    name: JobsPipe
-    url: https://jobspipe.dev
-    email: support@jobspipe.dev
+  title: JobsPipe Stack API
+  description: Every job posting, one API. Search live job postings from 30+ sources.
 servers:
 - url: https://api.jobspipe.dev
-security:
-- apiKey: []
+  description: Production
 tags:
 - name: Stack
 paths:
   /v1/stack/scan:
     post:
       operationId: scanStack
-      summary: Scan a domain's technology stack
-      x-consequence: read-only
-      x-side-effects: may trigger a fresh scan of the target domain and refresh the ~14-day cache; consumes 1 credit
+      tags:
+      - Stack
+      summary: Detect a website's tech stack
+      description: Given a domain, returns the technologies it serves (frameworks, analytics, CDNs, payment, SaaS widgets). Results are cached for 14 days.
       security:
-      - apiKey: []
-      - oidc:
-        - stack:read
-      description: Scans a single domain on demand and returns the technologies detected on it. Results are cached. Requires authentication with an API key.
-      parameters:
-      - $ref: '#/components/parameters/IdempotencyKey'
+      - bearerAuth: []
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StackScanRequest'
+              type: object
+              properties:
+                domain:
+                  type: string
+                  minLength: 3
+                  maxLength: 253
+                  description: Domain to scan, e.g. "stripe.com". URLs and "www." are normalized.
+                mode:
+                  type: string
+                  enum:
+                  - auto
+                  - html
+                  - render
+                  description: Scan strategy. auto (default) tries a fast HTTP fetch, then a headless render if results are thin.
+              required:
+              - domain
+              description: Tech-stack scan request.
+            example:
+              domain: stripe.com
+              mode: auto
       responses:
         '200':
-          description: The scan result for the requested domain.
-          headers:
-            Deprecation:
-              $ref: '#/components/headers/Deprecation'
-            Sunset:
-              $ref: '#/components/headers/Sunset'
+          description: Detected tech stack
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StackScanResponse'
+                type: object
+                properties:
+                  domain:
+                    type: string
+                  scanned_at:
+                    type: string
+                    description: ISO timestamp the result was produced.
+                  http_status:
+                    type: number
+                  detected:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        slug:
+                          type: string
+                        name:
+                          type: string
+                        categories:
+                          type: array
+                          items:
+                            type: string
+                        confidence:
+                          type: number
+                          description: 0-100 match confidence.
+                        version:
+                          type:
+                          - string
+                          - 'null'
+                        signals:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              kind:
+                                type: string
+                              match:
+                                type: string
+                            required:
+                            - kind
+                            - match
+                        description:
+                          type:
+                          - string
+                          - 'null'
+                        website:
+                          type:
+                          - string
+                          - 'null'
+                        icon:
+                          type:
+                          - string
+                          - 'null'
+                        pricing:
+                          type: array
+                          items:
+                            type: string
+                        saas:
+                          type: boolean
+                        oss:
+                          type: boolean
+                      required:
+                      - slug
+                      - name
+                      - categories
+                      - confidence
+                      - version
+                      - signals
+                      - description
+                      - website
+                      - icon
+                      - pricing
+                      - saas
+                      - oss
+                required:
+                - domain
+                - scanned_at
+                - http_status
+                - detected
+              example:
+                domain: stripe.com
+                scanned_at: '2026-06-29T12:00:00Z'
+                http_status: 200
+                detected:
+                - slug: react
+                  name: React
+                  categories:
+                  - JavaScript frameworks
+                  confidence: 100
+                  version: null
+                  signals:
+                  - kind: script
+                    match: react-dom
+                  description: A JavaScript library for building user interfaces.
+                  website: https://react.dev
+                  icon: react.svg
+                  pricing: []
+                  saas: false
+                  oss: true
         '400':
-          description: The request body was missing a domain, contained an invalid domain, or could not be parsed.
+          description: Invalid domain
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '401':
-          description: Missing or invalid API key.
+          description: Missing or invalid API key
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  how_to_fix:
+                    type: string
+                  get_key:
+                    type: string
+                    format: uri
+                  docs:
+                    type: string
+                    format: uri
+                required:
+                - error
+                - message
+                - how_to_fix
+                - get_key
+                - docs
         '402':
-          description: Monthly request quota exceeded.
+          description: Monthly quota exceeded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  upgrade_url:
+                    type: string
+                    format: uri
+                  dashboard_url:
+                    type: string
+                    format: uri
+                  credits_used:
+                    type: integer
+                  credits_included:
+                    type: integer
+                required:
+                - error
+                - message
+                - upgrade_url
+                - dashboard_url
         '429':
-          description: Per-second rate limit exceeded.
+          description: Rate limit exceeded
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RateLimitErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  how_to_fix:
+                    type: string
+                  requests_per_second:
+                    type: integer
+                  retry_after_seconds:
+                    type: integer
+                  upgrade_url:
+                    type: string
+                    format: uri
+                  docs:
+                    type: string
+                    format: uri
+                required:
+                - error
+                - message
+                - how_to_fix
+                - retry_after_seconds
+                - upgrade_url
+                - docs
         '502':
-          description: The scanner failed to complete the scan.
+          description: Scanner failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
         '504':
-          description: The scan timed out.
+          description: Scan timed out
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      tags:
-      - Stack
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
 components:
-  schemas:
-    ErrorResponse:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: string
-          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
-        message:
-          type: string
-          description: Additional detail. Present on 402 quota responses; other errors carry only error.
-    StackScanRequest:
-      type: object
-      required:
-      - domain
-      properties:
-        domain:
-          type: string
-          description: The domain to scan, e.g. stripe.com.
-        mode:
-          type: string
-          enum:
-          - auto
-          - html
-          - render
-          description: Optional scan mode. Defaults to auto.
-    DetectedTech:
-      type: object
-      description: A technology detected on the scanned domain.
-      required:
-      - slug
-      - name
-      - categories
-      - confidence
-      - signals
-      - pricing
-      - saas
-      - oss
-      properties:
-        slug:
-          type: string
-          description: Stable technology identifier, e.g. 'nextjs'.
-        name:
-          type: string
-          description: Display name, e.g. 'Next.js'.
-        categories:
-          type: array
-          items:
-            type: string
-          description: Categories the technology belongs to, e.g. 'Web frameworks', 'Analytics'.
-        confidence:
-          type: number
-          description: 0-100 match confidence for this detection.
-        version:
-          type: string
-          nullable: true
-          description: Detected version, when the fingerprint reveals one.
-        signals:
-          type: array
-          description: 'The evidence behind the detection: what kind of fingerprint matched and the matched value.'
-          items:
-            type: object
-            required:
-            - kind
-            - match
-            properties:
-              kind:
-                type: string
-                description: Signal type, e.g. 'header', 'script', 'meta', 'cookie'.
-              match:
-                type: string
-                description: The matched fingerprint value.
-        description:
-          type: string
-          nullable: true
-          description: Short description of the technology.
-        website:
-          type: string
-          nullable: true
-          description: The technology vendor's website.
-        icon:
-          type: string
-          nullable: true
-          description: Icon identifier for the technology.
-        pricing:
-          type: array
-          items:
-            type: string
-          description: Pricing traits, e.g. 'freemium', 'payg'.
-        saas:
-          type: boolean
-          description: True if offered as a hosted SaaS.
-        oss:
-          type: boolean
-          description: True if open source.
-    StackScanResponse:
-      type: object
-      required:
-      - domain
-      - scanned_at
-      - http_status
-      - render_path
-      - detected
-      properties:
-        domain:
-          type: string
-          description: The normalized domain that was scanned.
-        scanned_at:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp of when the scan was performed.
-        http_status:
-          type: integer
-          description: HTTP status code returned by the scanned domain.
-        render_path:
-          type: string
-          description: The render path used to fetch the domain.
-        detected:
-          type: array
-          items:
-            $ref: '#/components/schemas/DetectedTech'
-          description: The technologies detected on the domain.
-    RateLimitErrorResponse:
-      type: object
-      required:
-      - error
-      description: 'Sent with HTTP 429 when the per-second rate limit is exceeded. The response also carries Retry-After: 1 and the RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset and RateLimit-Policy headers. A 429 costs no credit.'
-      properties:
-        error:
-          type: string
-          description: 'Human-readable message: "Rate limit exceeded".'
-  headers:
-    Deprecation:
-      description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 9745 date of when the endpoint was or will be deprecated. Absent on current endpoints.
-      schema:
-        type: string
-    Sunset:
-      description: Sent only on deprecated endpoints, per the JobsPipe deprecation policy. RFC 8594 timestamp after which the endpoint stops working - at least 6 months after the Deprecation date. Absent on current endpoints.
-      schema:
-        type: string
-  parameters:
-    IdempotencyKey:
-      name: Idempotency-Key
-      in: header
-      required: false
-      schema:
-        type: string
-        maxLength: 255
-      description: 'Optional client-generated key (e.g. a UUID) that makes this POST safe to retry. A repeat with the same key returns the original response plus an Idempotent-Replayed: true header. Keys are retained for 24 hours.'
   securitySchemes:
-    apiKey:
+    bearerAuth:
       type: http
       scheme: bearer
-      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
-    oidc:
-      type: openIdConnect
-      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
-      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
-x-service-info:
-  categories:
-  - data
-  - jobs
-  - technographics
-  docs:
-    homepage: https://jobspipe.dev
-    apiReference: https://docs.jobspipe.dev
-    llms: https://jobspipe.dev/llms.txt
+      description: Your JobsPipe API key (starts with jp_live_).

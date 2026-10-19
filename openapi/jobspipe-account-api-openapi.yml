@@ -1,30 +1,1002 @@
 openapi: 3.2.0
 info:
-  title: JobsPipe Account API
   version: 1.0.0
-  description: JobsPipe is a unified data API over public job and technographic sources.
-  contact:
-    name: JobsPipe
-    url: https://jobspipe.dev
-    email: support@jobspipe.dev
+  title: JobsPipe Account API
+  description: Every job posting, one API. Search live job postings from 30+ sources.
 servers:
 - url: https://api.jobspipe.dev
-security:
-- apiKey: []
+  description: Production
 tags:
 - name: Account
 paths:
+  /api/users/usage:
+    get:
+      operationId: getUsage
+      tags:
+      - Account
+      summary: Monthly API request usage (last 6 months)
+      responses:
+        '200':
+          description: Usage by month
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  thisMonth:
+                    type: number
+                  months:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        month:
+                          type: string
+                        count:
+                          type: number
+                      required:
+                      - month
+                      - count
+                required:
+                - thisMonth
+                - months
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /api/users/usage/events:
+    get:
+      operationId: listUsageEvents
+      tags:
+      - Account
+      summary: Your API requests, newest first, with what each one cost
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - 1h
+          - 24h
+          - 7d
+          - 30d
+          - 90d
+          description: How far back to look. Defaults to 24h.
+        required: false
+        description: How far back to look. Defaults to 24h.
+        name: window
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: 'Overrides window: start, ISO 8601.'
+        required: false
+        description: 'Overrides window: start, ISO 8601.'
+        name: from
+        in: query
+      - schema:
+          type: string
+          format: date-time
+          description: Exclusive end, ISO 8601.
+        required: false
+        description: Exclusive end, ISO 8601.
+        name: to
+        in: query
+      - schema:
+          type: string
+          description: Only requests made with this API key id.
+        required: false
+        description: Only requests made with this API key id.
+        name: key
+        in: query
+      - schema:
+          type: string
+          maxLength: 200
+          description: Search what was sent and the path, or give an exact request id.
+        required: false
+        description: Search what was sent and the path, or give an exact request id.
+        name: q
+        in: query
+      - schema:
+          type: string
+          enum:
+          - ok
+          - client_error
+          - refused
+          - rate_limited
+          - server_error
+        required: false
+        name: status
+        in: query
+      - schema:
+          type: string
+          enum:
+          - jobs
+          - companies
+          - insights
+          - stack
+        required: false
+        name: endpoint
+        in: query
+      - schema:
+          type: string
+          enum:
+          - charged
+          - free
+          description: 'charged: cost credits. free: cost none.'
+        required: false
+        description: 'charged: cost credits. free: cost none.'
+        name: cost
+        in: query
+      - schema:
+          type: string
+        required: false
+        name: cursor
+        in: query
+      - schema:
+          type: integer
+          minimum: 1
+          maximum: 200
+        required: false
+        name: limit
+        in: query
+      responses:
+        '200':
+          description: One page of requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        at:
+                          type: string
+                          description: When the request was received, ISO 8601 UTC.
+                        request_id:
+                          type: string
+                        api_key_id:
+                          type: string
+                        key_label:
+                          type: string
+                          description: The key's name, or Dashboard / MCP for requests made there.
+                        auth_type:
+                          type: string
+                        method:
+                          type: string
+                        path:
+                          type: string
+                        status:
+                          type: number
+                        error:
+                          type: string
+                        duration_ms:
+                          type: number
+                        jobs_returned:
+                          type:
+                          - number
+                          - 'null'
+                        jobs_already_paid:
+                          type:
+                          - number
+                          - 'null'
+                          description: Jobs that cost nothing because the account already paid for them this month.
+                        credits_charged:
+                          type: number
+                        request_body:
+                          type: string
+                          description: The body that was sent, with keys redacted, truncated at 4 KB. Empty for GET.
+                        user_agent:
+                          type: string
+                        client_ip:
+                          type: string
+                      required:
+                      - at
+                      - request_id
+                      - api_key_id
+                      - key_label
+                      - auth_type
+                      - method
+                      - path
+                      - status
+                      - error
+                      - duration_ms
+                      - jobs_returned
+                      - jobs_already_paid
+                      - credits_charged
+                      - request_body
+                      - user_agent
+                      - client_ip
+                  total:
+                    type: number
+                    description: Requests matching the filters, across every page.
+                  next_cursor:
+                    type:
+                    - string
+                    - 'null'
+                    description: Pass as cursor for the next, older page.
+                required:
+                - events
+                - total
+                - next_cursor
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '503':
+          description: The request log is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /api/users/usage/series:
+    get:
+      operationId: getUsageSeries
+      tags:
+      - Account
+      summary: Credits used per hour or per day, by API key
+      parameters:
+      - schema:
+          type: string
+          enum:
+          - 1h
+          - 24h
+          - 7d
+          - 30d
+          - 90d
+          description: How far back to look. Defaults to 24h.
+        required: false
+        description: How far back to look. Defaults to 24h.
+        name: window
+        in: query
+      - schema:
+          type: string
+          enum:
+          - hour
+          - day
+          description: Defaults to hour up to 7d, else day.
+        required: false
+        description: Defaults to hour up to 7d, else day.
+        name: bucket
+        in: query
+      responses:
+        '200':
+          description: Credits over time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bucket:
+                    type: string
+                    enum:
+                    - hour
+                    - day
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        label:
+                          type: string
+                      required:
+                      - id
+                      - label
+                  points:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        at:
+                          type: string
+                          description: Start of the bucket, ISO 8601 UTC.
+                        api_key_id:
+                          type: string
+                        requests:
+                          type: number
+                        jobs_returned:
+                          type: number
+                        jobs_already_paid:
+                          type: number
+                        credits_charged:
+                          type: number
+                        refused:
+                          type: number
+                          description: Requests refused with 402 in this bucket.
+                      required:
+                      - at
+                      - api_key_id
+                      - requests
+                      - jobs_returned
+                      - jobs_already_paid
+                      - credits_charged
+                      - refused
+                required:
+                - bucket
+                - keys
+                - points
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '503':
+          description: The request log is temporarily unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /api/users/me:
+    get:
+      operationId: getCurrentUser
+      tags:
+      - Account
+      summary: Get current user & usage
+      responses:
+        '200':
+          description: Get current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  emailVerified:
+                    type: boolean
+                  image:
+                    type:
+                    - string
+                    - 'null'
+                  apiUsed:
+                    type: number
+                  plan:
+                    type: string
+                  limit:
+                    type: number
+                  oneTime:
+                    type: boolean
+                    default: false
+                  creditUnits:
+                    type:
+                    - integer
+                    - 'null'
+                  topup:
+                    type:
+                    - object
+                    - 'null'
+                    properties:
+                      capUsd:
+                        type:
+                        - number
+                        - 'null'
+                      balance:
+                        type: integer
+                      spentUsdThisMonth:
+                        type: number
+                      blockCredits:
+                        type: integer
+                      blockUsd:
+                        type:
+                        - number
+                        - 'null'
+                      lastFailure:
+                        type:
+                        - string
+                        - 'null'
+                    default: null
+                    required:
+                    - capUsd
+                    - balance
+                    - spentUsdThisMonth
+                    - blockCredits
+                    - blockUsd
+                    - lastFailure
+                  emailPrefs:
+                    type:
+                    - object
+                    - 'null'
+                    properties:
+                      productUpdates:
+                        type: boolean
+                      weeklyDigest:
+                        type: boolean
+                      jobAlerts:
+                        type: boolean
+                  subscriptions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        plan:
+                          type: string
+                        status:
+                          anyOf:
+                          - type: string
+                            enum:
+                            - active
+                          - type: string
+                            enum:
+                            - trialing
+                        periodEnd:
+                          type:
+                          - string
+                          - 'null'
+                        seats:
+                          type:
+                          - integer
+                          - 'null'
+                      required:
+                      - plan
+                      - status
+                      - periodEnd
+                      - seats
+                  org:
+                    type:
+                    - object
+                    - 'null'
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      role:
+                        type: string
+                      canManageBilling:
+                        type: boolean
+                    default: null
+                    required:
+                    - id
+                    - name
+                    - role
+                    - canManageBilling
+                  personalSubscriptions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        plan:
+                          type: string
+                        status:
+                          anyOf:
+                          - type: string
+                            enum:
+                            - active
+                          - type: string
+                            enum:
+                            - trialing
+                        periodEnd:
+                          type:
+                          - string
+                          - 'null'
+                        seats:
+                          type:
+                          - integer
+                          - 'null'
+                      required:
+                      - plan
+                      - status
+                      - periodEnd
+                      - seats
+                    default: []
+                required:
+                - id
+                - name
+                - email
+                - emailVerified
+                - apiUsed
+                - plan
+                - limit
+                - creditUnits
+                - emailPrefs
+                - subscriptions
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+    delete:
+      operationId: deleteAccount
+      tags:
+      - Account
+      summary: Permanently delete your account
+      description: 'Cancels any active subscription immediately, revokes every API key and session, and erases your personal data. Billing records required by law are kept with your name and email removed. Send {"confirm": "DELETE"} from a signed-in dashboard session; API keys cannot call it.'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirm:
+                  type: string
+                  description: Must be exactly "DELETE".
+      responses:
+        '200':
+          description: The account is deleted and this session is signed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                    enum:
+                    - true
+                required:
+                - deleted
+        '400':
+          description: The confirmation is missing or wrong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: The request did not come from the JobsPipe dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+        '502':
+          description: The subscription could not be cancelled, so nothing was deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+  /api/users/me/topup:
+    patch:
+      operationId: updateTopupSettings
+      tags:
+      - Account
+      summary: Set the monthly top-up budget (null turns top-ups off)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                capUsd:
+                  type:
+                  - integer
+                  - 'null'
+                  minimum: 10
+                  maximum: 100000
+              required:
+              - capUsd
+      responses:
+        '200':
+          description: Current top-up state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capUsd:
+                    type:
+                    - number
+                    - 'null'
+                  balance:
+                    type: integer
+                  spentUsdThisMonth:
+                    type: number
+                  blockCredits:
+                    type: integer
+                  blockUsd:
+                    type:
+                    - number
+                    - 'null'
+                  lastFailure:
+                    type:
+                    - string
+                    - 'null'
+                required:
+                - capUsd
+                - balance
+                - spentUsdThisMonth
+                - blockCredits
+                - blockUsd
+                - lastFailure
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: Auto-recharge needs a paid package, or the caller cannot manage this workspace's billing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+  /api/users/me/topup/buy:
+    post:
+      operationId: buyCredits
+      tags:
+      - Account
+      summary: Buy a one-time credit pack at the package's own per-1,000 rate (paid packages…
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credits:
+                  type: integer
+                idempotencyKey:
+                  type: string
+                  minLength: 8
+                  maxLength: 64
+              required:
+              - credits
+              - idempotencyKey
+      responses:
+        '200':
+          description: Credits added; current top-up state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capUsd:
+                    type:
+                    - number
+                    - 'null'
+                  balance:
+                    type: integer
+                  spentUsdThisMonth:
+                    type: number
+                  blockCredits:
+                    type: integer
+                  blockUsd:
+                    type:
+                    - number
+                    - 'null'
+                  lastFailure:
+                    type:
+                    - string
+                    - 'null'
+                required:
+                - capUsd
+                - balance
+                - spentUsdThisMonth
+                - blockCredits
+                - blockUsd
+                - lastFailure
+        '400':
+          description: Not a pack size
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '402':
+          description: The card on file was declined
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+        '403':
+          description: Packs need a paid package with a card on file, and an owner or admin of the workspace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+        '409':
+          description: Another purchase for this account is in flight
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+                - message
+  /api/users/me/preferences:
+    patch:
+      operationId: updateEmailPreferences
+      tags:
+      - Account
+      summary: Update email notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productUpdates:
+                  type: boolean
+                weeklyDigest:
+                  type: boolean
+                jobAlerts:
+                  type: boolean
+      responses:
+        '200':
+          description: Updated preferences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productUpdates:
+                    type: boolean
+                  weeklyDigest:
+                    type: boolean
+                  jobAlerts:
+                    type: boolean
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /api/users/usage-emails/unsubscribe:
+    get:
+      operationId: unsubscribeUsageEmails
+      tags:
+      - Account
+      summary: One-click unsubscribe from weekly usage reports
+      parameters:
+      - schema:
+          type: string
+        required: true
+        name: uid
+        in: query
+      - schema:
+          type: string
+        required: true
+        name: sig
+        in: query
+      responses:
+        '200':
+          description: Unsubscribed
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          description: Invalid link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+    post:
+      operationId: unsubscribeUsageEmailsOneClick
+      tags:
+      - Account
+      summary: One-click unsubscribe from weekly usage reports (mail-client POST)
+      parameters:
+      - schema:
+          type: string
+        required: true
+        name: uid
+        in: query
+      - schema:
+          type: string
+        required: true
+        name: sig
+        in: query
+      responses:
+        '200':
+          description: Unsubscribed
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          description: Invalid link
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /api/users/me/support-token:
+    get:
+      operationId: getSupportToken
+      tags:
+      - Account
+      summary: Mint a support-chat identity token
+      description: A short-lived token the support chat widget uses to prove who is chatting. It carries no credentials and grants nothing beyond this account's own support answers.
+      responses:
+        '200':
+          description: A signed token for the support widget.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_in:
+                    type: integer
+                required:
+                - token
+                - expires_in
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: The account cannot use support chat yet (unverified email, or banned).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '503':
+          description: Support chat is not configured.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
   /v1/account:
     get:
       operationId: getAccount
+      tags:
+      - Account
       summary: Get the account behind this credential
-      x-consequence: read-only
-      x-side-effects: none - consumes no credits
-      security:
-      - apiKey: []
-      - oidc:
-        - jobs:read
-      description: Returns who the API key or OAuth token belongs to, the plan it is on and this calendar month's credit usage. Costs no credits and does not count against the per-second rate limit, so call it before a large search to check what is left.
+      description: Returns who the API key or OAuth token belongs to, the plan it is on and this month's credit usage. Costs no credits and does not count against the search rate limit.
       responses:
         '200':
           description: The connected account.
@@ -45,7 +1017,7 @@ paths:
                     - 'null'
                   auth_type:
                     type: string
-                    description: 'How the request was authenticated: api_key, oauth or session.'
+                    description: 'How this request was authenticated: api_key, oauth or session.'
                   plan:
                     type: string
                     description: A plan name, or credits:N for N thousand credits a month.
@@ -54,10 +1026,18 @@ paths:
                     description: The calendar month the usage figures cover, YYYY-MM in UTC.
                   monthly_credits:
                     type: integer
+                    description: Credits included each month. 0 on Free, which is a one-time grant instead.
+                  one_time_credits:
+                    type:
+                    - integer
+                    - 'null'
+                    description: 'Free only: the one-time credits the account started with (1,000; more if support added some). They do not renew. Null on paid plans.'
                   credits_used:
                     type: integer
+                    description: 'Paid: credits used this month. Free: credits used of the one-time grant.'
                   credits_remaining:
                     type: integer
+                    description: 'Paid: left of this month''s allowance. Free: left of the one-time grant.'
                   extra_credits:
                     type: integer
                     description: One-time credits bought on top of the plan, drawn after the monthly allowance.
@@ -65,42 +1045,312 @@ paths:
                     type: integer
                   requests_per_second:
                     type: number
+                required:
+                - user_id
+                - email
+                - name
+                - auth_type
+                - plan
+                - month
+                - monthly_credits
+                - one_time_credits
+                - credits_used
+                - credits_remaining
+                - extra_credits
+                - max_results_per_request
+                - requests_per_second
         '401':
-          description: Missing or invalid API key.
+          description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+  /v1/feedback:
+    post:
+      operationId: submitFeedback
       tags:
       - Account
+      summary: Tell JobsPipe what was wrong or missing
+      description: 'Send a report about the data or the tools: a posting that is closed or stale, a wrong field, a search that missed what exists, a dataset gap, a confusing tool. A person reads every submission. Costs no credits and does not count against the search rate limit. Up to 10 a minute and 100 a day per account.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                  enum:
+                  - data_quality
+                  - missing_data
+                  - search_results
+                  - tool_usability
+                  - pricing
+                  - other
+                  description: What the report is about.
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 4000
+                  description: What was wrong, missing or confusing, in the agent's own words.
+                job_ids:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 256
+                  maxItems: 50
+                  description: The postings the report is about, by the id a search or fetch returned.
+                tool:
+                  type: string
+                  maxLength: 64
+                  description: The tool or endpoint that was being used.
+                query:
+                  type: object
+                  additionalProperties: {}
+                  description: The search input that was run, as it was given, so a miss can be replayed.
+                agent:
+                  type: string
+                  maxLength: 128
+                  description: The client or model sending the report.
+                source:
+                  type: string
+                  enum:
+                  - dashboard
+                  description: Where a person sent the report from, when it was not an agent. Stored as the agent when none is given.
+                reason:
+                  type: string
+                  enum:
+                  - wrong_company
+                  - wrong_location
+                  - wrong_salary
+                  - wrong_details
+                  - closed
+                  - duplicate
+                  - other
+                  description: What is wrong with the postings in `job_ids`, as a fixed reason. Stored at the head of the message.
+              required:
+              - category
+              - message
+              additionalProperties: false
+      responses:
+        '201':
+          description: Received.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  received_at:
+                    type: string
+                    format: date-time
+                  note:
+                    type: string
+                required:
+                - id
+                - received_at
+                - note
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+        '429':
+          description: Too many submissions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                required:
+                - error
+  /v1/billing/checkout:
+    post:
+      operationId: createBillingCheckout
+      tags:
+      - Account
+      summary: Start a package purchase
+      description: 'Returns a Stripe link where the account holder buys a package, or confirms a move to a larger one. Nothing is charged or changed by this call; the new allowance applies once the account holder completes the Stripe page. A smaller package is refused with 409: downgrades are made on the billing page. Send a package, or credits, or nothing to be offered the package that covers 1.5x this month''s use.'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                package:
+                  type: string
+                  description: 'The package to buy: seeker, builder, growth, scale, business. Wins over credits when both are sent.'
+                credits:
+                  type: number
+                  description: Monthly credits wanted; the smallest package that covers them is chosen. Above 500,000 is an Enterprise plan.
+      responses:
+        '200':
+          description: A link to pay or confirm.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    format: uri
+                    description: Where the account holder pays or confirms the change. Open it in a browser.
+                  flow:
+                    type: string
+                    enum:
+                    - checkout
+                    - portal
+                    description: 'checkout: a Stripe Checkout page for a new subscription. portal: a Stripe page where the account holder confirms the move to the larger package.'
+                  package:
+                    type: string
+                  credits:
+                    type: integer
+                    description: Credits a month on the chosen package.
+                  billing_interval:
+                    type: string
+                    enum:
+                    - month
+                    - year
+                    description: 'How the package is billed: the account''s current interval (a yearly subscriber stays yearly; credits still refresh every month). New purchases here are monthly; yearly is chosen on the billing page.'
+                  price_usd:
+                    type: number
+                    description: The package's price in USD per billing_interval.
+                required:
+                - url
+                - flow
+                - package
+                - credits
+                - billing_interval
+                - price_usd
+        '400':
+          description: Unknown package, bad credits, or more than the largest package.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  contact_url:
+                    type: string
+                    format: uri
+                  billing_url:
+                    type: string
+                    format: uri
+                required:
+                - error
+                - message
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                required:
+                - error
+        '403':
+          description: The caller is a member of a workspace that pays for them; only its owner or admin can change its plan (billing_managers_only).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  contact_url:
+                    type: string
+                    format: uri
+                  billing_url:
+                    type: string
+                    format: uri
+                required:
+                - error
+                - message
+        '409':
+          description: 'The account already holds that package (already_subscribed), or asked for a smaller one (downgrade_requires_dashboard: made on the billing page, billing_url).'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  contact_url:
+                    type: string
+                    format: uri
+                  billing_url:
+                    type: string
+                    format: uri
+                required:
+                - error
+                - message
+        '502':
+          description: Stripe could not start the checkout.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  message:
+                    type: string
+                  contact_url:
+                    type: string
+                    format: uri
+                  billing_url:
+                    type: string
+                    format: uri
+                required:
+                - error
+                - message
 components:
-  schemas:
-    ErrorResponse:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: string
-          description: 'Human-readable error message, e.g. "Invalid search filters: unknown filter: ''query''. Did you mean query -> job_title_or?". Not a stable machine-readable code; match on the HTTP status instead. A few stack-scan errors carry a short identifier such as missing_domain or invalid_domain.'
-        message:
-          type: string
-          description: Additional detail. Present on 402 quota responses; other errors carry only error.
   securitySchemes:
-    apiKey:
+    bearerAuth:
       type: http
       scheme: bearer
-      description: 'API key issued from the JobsPipe dashboard, prefixed jp_live_, sent as a bearer token in the Authorization header. Keys are read-only and scoped: jobs:read grants POST /v1/jobs/search, stack:read grants POST /v1/stack/scan. No scope grants write access to JobsPipe data.'
-    oidc:
-      type: openIdConnect
-      openIdConnectUrl: https://jobspipe.dev/.well-known/openid-configuration
-      description: 'OpenID Connect / OAuth 2.0 access via the JobsPipe authorization server. Supported scopes (also advertised in the protected-resource metadata at https://api.jobspipe.dev/.well-known/oauth-protected-resource): jobs:read - search normalized job postings; stack:read - run technology-stack scans.'
-x-service-info:
-  categories:
-  - data
-  - jobs
-  - technographics
-  docs:
-    homepage: https://jobspipe.dev
-    apiReference: https://docs.jobspipe.dev
-    llms: https://jobspipe.dev/llms.txt
+      description: Your JobsPipe API key (starts with jp_live_).
