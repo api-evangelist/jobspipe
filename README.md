@@ -72,7 +72,7 @@ JobsPipe provides a universal jobs API and hiring-signal platform that aggregate
 
 Everything profiled for JobsPipe is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/jobspipe/](https://apis.io/providers/jobspipe/)** — or go straight to one of the APIs or properties below.
 
-### APIs (10)
+### APIs (13)
 
 - [JobsPipe Account API](https://apis.io/apis/jobspipe/jobspipe-account-api/) — The Account API from JobsPipe — 1 operation(s) for account.
 - [JobsPipe Billing API](https://apis.io/apis/jobspipe/jobspipe-billing-api/) — The Billing API from JobsPipe — 1 operation(s) for billing.
@@ -84,6 +84,9 @@ Everything profiled for JobsPipe is published on APIs.io rather than in this rep
 - [JobsPipe Sandbox API](https://apis.io/apis/jobspipe/jobspipe-sandbox-api/) — The Sandbox API from JobsPipe — 4 operation(s) for sandbox.
 - [JobsPipe Stack API](https://apis.io/apis/jobspipe/jobspipe-stack-api/) — The Stack API from JobsPipe — 1 operation(s) for stack.
 - [JobsPipe Technologies API](https://apis.io/apis/jobspipe/jobspipe-technologies-api/) — The Technologies API from JobsPipe — 3 operation(s) for technologies.
+- [JobsPipe Contacts API](https://apis.io/apis/jobspipe/jobspipe-contacts-api/) — Find work emails, personal emails and phone numbers for people.
+- [JobsPipe Layoffs API](https://apis.io/apis/jobspipe/jobspipe-layoffs-api/) — US WARN Act layoff and closure notices, with the company each names.
+- [JobsPipe Live API](https://apis.io/apis/jobspipe/jobspipe-live-api/) — Read a board or search a source live, without waiting for a crawl.
 
 ### Published properties
 
@@ -139,17 +142,24 @@ Authentication, trust centre, and vulnerability disclosure.
 - [Jobspipe Trust Center](https://apis.io/security/jobspipe/jobspipe-trust-center/)
 - [Jobspipe Vulnerability Disclosure](https://apis.io/security/jobspipe/jobspipe-vulnerability-disclosure/)
 
-#### Plans and pricing (1)
+#### Plans and pricing (2)
 
 Published plans, tiers and prices.
 
 - [Jobspipe Plans Pricing](https://apis.io/plans/jobspipe/jobspipe-plans-pricing/)
+- [Jobspipe Price Estimates](https://apis.io/plans/jobspipe/jobspipe-price-estimates/)
 
 #### Rate limits (1)
 
 Published request limits.
 
 - [Jobspipe Rate Limits](https://apis.io/rate-limits/jobspipe/jobspipe-rate-limits/)
+
+#### FinOps (1)
+
+What the API costs to run, by operation.
+
+- [Jobspipe Finops](https://apis.io/finops/jobspipe/jobspipe-finops/)
 
 ## Where to find this API
 
