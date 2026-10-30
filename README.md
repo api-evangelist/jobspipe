@@ -64,5 +64,164 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-JobsPipe is a company surfaced via the API Evangelist harvest backlog (source: new-submission) and added to the network as a stub for full-pipeline profiling.
-- https://jobspipe.dev
+JobsPipe provides a universal jobs API and hiring-signal platform that aggregates and normalizes job postings from over 30 applicant tracking systems and job boards, including LinkedIn, Indeed, Workday, Greenhouse, Lever, and Ashby. It offers real-time webhooks, AI-parsed salary ranges, and historical data, enabling AI agents and developers to integrate comprehensive job market data into their applications.
+
+**Areas:** Company · Job · Data · Hiring · JobsAPI
+
+## JobsPipe on APIs.io
+
+Everything profiled for JobsPipe is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/jobspipe/](https://apis.io/providers/jobspipe/)** — or go straight to one of the APIs or properties below.
+
+### APIs (10)
+
+- [JobsPipe Account API](https://apis.io/apis/jobspipe/jobspipe-account-api/) — The Account API from JobsPipe — 1 operation(s) for account.
+- [JobsPipe Billing API](https://apis.io/apis/jobspipe/jobspipe-billing-api/) — The Billing API from JobsPipe — 1 operation(s) for billing.
+- [JobsPipe Companies API](https://apis.io/apis/jobspipe/jobspipe-companies-api/) — The Companies API from JobsPipe — 3 operation(s) for companies.
+- [JobsPipe Jobs API](https://apis.io/apis/jobspipe/jobspipe-jobs-api/) — The Jobs API from JobsPipe — 2 operation(s) for jobs.
+- [JobsPipe JobsPipe API](https://apis.io/apis/jobspipe/jobspipe-jobspipe-api-api/) — The JobsPipe API API from JobsPipe — 0 operation(s) for jobspipe api.
+- [JobsPipe Labour Market Insights API](https://apis.io/apis/jobspipe/jobspipe-labour-market-insights-api/) — The Labour Market Insights API from JobsPipe — 10 operation(s) for labour market insights.
+- [JobsPipe Monitors API](https://apis.io/apis/jobspipe/jobspipe-monitors-api/) — The Monitors API from JobsPipe — 4 operation(s) for monitors.
+- [JobsPipe Sandbox API](https://apis.io/apis/jobspipe/jobspipe-sandbox-api/) — The Sandbox API from JobsPipe — 4 operation(s) for sandbox.
+- [JobsPipe Stack API](https://apis.io/apis/jobspipe/jobspipe-stack-api/) — The Stack API from JobsPipe — 1 operation(s) for stack.
+- [JobsPipe Technologies API](https://apis.io/apis/jobspipe/jobspipe-technologies-api/) — The Technologies API from JobsPipe — 3 operation(s) for technologies.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Jobspipe Webhooks](https://apis.io/asyncapis/jobspipe/jobspipe-webhooks/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [jobspipe-mcp.yml](https://apis.io/servers/jobspipe/jobspipe-mcp-yml/)
+
+#### Agentic access (1)
+
+Which operations an agent can call, which act, and which need a human in the loop.
+
+- [Jobspipe Agentic Access](https://apis.io/agentic-access/jobspipe/jobspipe-agentic-access/)
+
+#### JSON Schema (6)
+
+The data models the API reads and writes.
+
+- [AgenticSearchResponse](https://apis.io/schemas/jobspipe/jobspipe-agentic-search-response/)
+- [CompanyObject](https://apis.io/schemas/jobspipe/jobspipe-company-object/)
+- [CompanySearchRequest](https://apis.io/schemas/jobspipe/jobspipe-company-search-request/)
+- [JobSearchRequest](https://apis.io/schemas/jobspipe/jobspipe-job-search-request/)
+- [JobSearchResponse](https://apis.io/schemas/jobspipe/jobspipe-job-search-response/)
+- [TechnologyDetailResponse](https://apis.io/schemas/jobspipe/jobspipe-technology-detail-response/)
+
+#### JSON-LD (1)
+
+Linked-data contexts for the provider's vocabulary.
+
+- [Jobspipe Context](https://apis.io/jsonld/jobspipe/jobspipe-context/)
+
+#### Governance rules (1)
+
+Spectral rulesets for the provider's contracts.
+
+- [JobsPipe API Rules](https://apis.io/rules/jobspipe/jobspipe-rules/)
+
+#### Security (4)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Jobspipe Authentication](https://apis.io/security/jobspipe/jobspipe-authentication/)
+- [Jobspipe Domain Security](https://apis.io/security/jobspipe/jobspipe-domain-security/)
+- [Jobspipe Trust Center](https://apis.io/security/jobspipe/jobspipe-trust-center/)
+- [Jobspipe Vulnerability Disclosure](https://apis.io/security/jobspipe/jobspipe-vulnerability-disclosure/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Jobspipe Plans Pricing](https://apis.io/plans/jobspipe/jobspipe-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Jobspipe Rate Limits](https://apis.io/rate-limits/jobspipe/jobspipe-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://jobspipe.dev)
+- [Documentation](https://docs.jobspipe.dev)
+- [Getting started](https://docs.jobspipe.dev/quickstart)
+- [API reference](https://docs.jobspipe.dev/api-reference/jobs-search)
+- [Pricing](https://jobspipe.dev/pricing)
+- [Sign up](https://jobspipe.dev/signup)
+- [Support](https://jobspipe.dev/contact)
+- [Changelog](https://jobspipe.dev/changelog)
+- [Blog](https://jobspipe.dev/blog)
+- [Security](https://jobspipe.dev/trust/security)
+- [Compliance](https://jobspipe.dev/trust/compliance)
+- [Terms of service](https://jobspipe.dev/terms)
+- [Privacy policy](https://jobspipe.dev/privacy)
+- [GitHub](https://github.com/jobspipe)
+- [Status](https://status.jobspipe.dev)
+
+## API Evangelist rating
+
+**Kin Score 74.4** — exemplar · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 66.7 |
+| Contract quality | 73.6 |
+| Contract governance | 22.0 |
+| Operational transparency | 86.8 |
+| Developer ergonomics | 73.2 |
+| Access clarity | 92.1 |
+
+**Agent readiness 68.1** — agent-native
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | — |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | served (partial credit) |
+| Idempotency | verified |
+| Error Semantics | verified |
+| OpenAPI Examples | partial |
+| Rate Limit Signal | documented (partial credit) |
+| Event Surface Described | yes |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | yes |
+| Consent Identity | — |
+| Agent Card | conformant |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | partial |
+| Operation Distinctiveness | distinct |
+
+**Regulatory alignment 35.3** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/jobspipe/](https://apis.io/providers/jobspipe/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for JobsPipe: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/jobspipe/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
